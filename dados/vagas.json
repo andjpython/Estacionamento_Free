@@ -1,0 +1,212 @@
+[
+    {
+        "numero": 1,
+        "tipo": "comum",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 2,
+        "tipo": "comum",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 3,
+        "tipo": "comum",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 4,
+        "tipo": "comum",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 5,
+        "tipo": "comum",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 6,
+        "tipo": "comum",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 7,
+        "tipo": "comum",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 8,
+        "tipo": "comum",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 9,
+        "tipo": "comum",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 10,
+        "tipo": "comum",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 11,
+        "tipo": "comum",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 12,
+        "tipo": "comum",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 13,
+        "tipo": "comum",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 14,
+        "tipo": "comum",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 15,
+        "tipo": "comum",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 16,
+        "tipo": "comum",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 17,
+        "tipo": "comum",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 18,
+        "tipo": "comum",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 19,
+        "tipo": "comum",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 20,
+        "tipo": "comum",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 21,
+        "tipo": "visitante",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 22,
+        "tipo": "visitante",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 23,
+        "tipo": "visitante",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 24,
+        "tipo": "visitante",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 25,
+        "tipo": "visitante",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 26,
+        "tipo": "visitante",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 27,
+        "tipo": "visitante",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 28,
+        "tipo": "visitante",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 29,
+        "tipo": "visitante",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    },
+    {
+        "numero": 30,
+        "tipo": "visitante",
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
+    }
+]

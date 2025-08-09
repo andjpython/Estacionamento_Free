@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Estacionamento Rotativo - Recanto das Flores I</title>
+  <link rel="icon" type="image/png" href="/static/imagens/icon.png">
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    /* Estilos específicos para o sistema */
+    .sistema-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    .header-sistema {
+      text-align: center;
+      margin-bottom: 30px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .header-sistema h1 {
+      margin: 0;
+      font-size: 2.5em;
+      font-weight: 700;
+    }
+
+    .header-sistema h2 {
+      margin: 10px 0 0 0;
+      font-size: 1.2em;
+      opacity: 0.9;
+    }
+
+    .menu-funcoes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .btn-funcao {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 20px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .btn-funcao:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    }
+
+    .secao {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+      border: 1px solid #e0e0e0;
+    }
+
+    .secao h2 {
+      color: #333;
+      margin-bottom: 25px;
+      font-size: 1.8em;
+      border-bottom: 3px solid #667eea;
+      padding-bottom: 10px;
+    }
+
+    .form-sistema {
+      display: grid;
+      gap: 20px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #555;
+    }
+
+    .form-group input, .form-group select {
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s ease;
+    }
+
+    .form-group input:focus, .form-group select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn-submit {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      justify-self: start;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .btn-info {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-info:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .resultado {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+
+    .resultado.sucesso {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .resultado.erro {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .resultado.info {
+      background-color: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+
+    .vagas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .vaga-card {
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 15px;
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .vaga-card.livre {
+      border-color: #28a745;
+      background-color: #f8fff9;
+    }
+
+    .vaga-card.ocupada {
+      border-color: #dc3545;
+      background-color: #fff8f8;
+    }
+
+    .vaga-card.tempo-excedido {
+      border-color: #ff6b35;
+      background-color: #fff5f0;
+    }
+
+    .vaga-card h3 {
+      margin: 0 0 10px 0;
+      font-size: 1.2em;
+    }
+
+    .status-livre {
+      color: #28a745;
+      font-weight: 600;
+    }
+
+    .status-ocupada {
+      color: #dc3545;
+      font-weight: 600;
+    }
+
+    /* Estilos para o timer de contagem regressiva */
+    .timer-container {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+    }
+
+    .timer-display {
+      font-family: 'Courier New', monospace;
+      font-size: 1.1em;
+      font-weight: bold;
+      text-align: center;
+      color: #495057;
+    }
+
+    .timer-normal {
+      color: #28a745;
+    }
+
+    .timer-warning {
+      color: #ffc107;
+      animation: pulse-warning 2s infinite;
+    }
+
+    .timer-critical {
+      color: #dc3545;
+      animation: pulse-critical 1s infinite;
+    }
+
+    .timer-expired {
+      color: #dc3545;
+      background-color: #f8d7da;
+      border-color: #f5c6cb;
+      animation: flash-expired 0.5s infinite;
+    }
+
+    @keyframes pulse-warning {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    @keyframes pulse-critical {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    @keyframes flash-expired {
+      0%, 100% { background-color: #f8d7da; }
+      50% { background-color: #f1aeb5; }
+    }
+
+    .timer-label {
+      font-size: 0.9em;
+      color: #6c757d;
+      margin-bottom: 5px;
+    }
+
+    .tempo-restante {
+      font-size: 0.85em;
+      color: #6c757d;
+      margin-top: 5px;
+    }
+
+    .veiculo-info {
+      font-size: 0.9em;
+      color: #495057;
+      margin-top: 5px;
+    }
+
+    .veiculo-info strong {
+      color: #212529;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 768px) {
+      .menu-funcoes {
+        grid-template-columns: 1fr;
+      }
+      
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      
+      .header-sistema h1 {
+        font-size: 2em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="sistema-container">
+    <!-- Header do Sistema -->
+    <div class="header-sistema">
+      <h1>🌸 Recanto das Flores I</h1>
+      <h2>Sistema de Estacionamento Rotativo</h2>
+    </div>
+
+    <!-- Menu Principal -->
+    <div class="menu-funcoes">
+      <button class="btn-funcao" onclick="abrirSecao('supervisor')">
+        🔐 Área do Supervisor
+      </button>
+      <button class="btn-funcao" onclick="abrirSecao('cadastro')">
+        📋 Cadastrar Veículo
+      </button>
+      <button class="btn-funcao" onclick="abrirSecao('estacionar')">
+        🚗 Estacionar Veículo
+      </button>
+      <button class="btn-funcao" onclick="abrirSecao('saida')">
+        🧹 Registrar Saída
+      </button>
+      <button class="btn-funcao" onclick="abrirSecao('vagas')">
+        📊 Ver Status das Vagas
+      </button>
+      <button class="btn-funcao" onclick="abrirSecao('tempo')">
+        ⏱ Verificar Tempo Excedido
+      </button>
+      <button class="btn-funcao" onclick="abrirSecao('remover')">
+        ❌ Remover por CPF
+      </button>
+    </div>
+
+    <!-- Seção: Área do Supervisor -->
+    <div id="supervisor" class="secao hidden">
+      <h2>🔐 Área do Supervisor</h2>
+      <form id="formSupervisor" class="form-sistema">
+        <div class="form-group">
+          <label for="senhaSupervisor">Senha do Supervisor:</label>
+          <input type="password" id="senhaSupervisor" name="senha" placeholder="Digite a senha" required>
+        </div>
+        <button type="submit" class="btn-submit">Entrar como Supervisor</button>
+      </form>
+      <div id="resultadoSupervisor" class="resultado hidden"></div>
+      
+      <!-- Botão Voltar -->
+      <div style="margin-top: 20px; text-align: center;">
+        <button onclick="voltarPaginaAnterior()" class="btn-voltar">← Voltar</button>
+      </div>
+    </div>
+
+    <!-- Seção: Cadastro de Veículo -->
+    <div id="cadastro" class="secao hidden">
+      <h2>📋 Cadastro de Veículo</h2>
+      <form id="formCadastro" class="form-sistema">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cpfCadastro">CPF:</label>
+            <input type="text" id="cpfCadastro" name="cpf" placeholder="000.000.000-00" required>
+          </div>
+          <div class="form-group">
+            <label for="placaCadastro">Placa:</label>
+            <input type="text" id="placaCadastro" name="placa" placeholder="ABC1234" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="modeloCadastro">Modelo:</label>
+            <input type="text" id="modeloCadastro" name="modelo" placeholder="Ex: Gol, Civic, etc.">
+          </div>
+          <div class="form-group">
+            <label for="nomeCadastro">Nome do Proprietário:</label>
+            <input type="text" id="nomeCadastro" name="nome" placeholder="Nome completo" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="blocoCadastro">Bloco:</label>
+            <input type="text" id="blocoCadastro" name="bloco" placeholder="Ex: A, B, C">
+          </div>
+          <div class="form-group">
+            <label for="apartamentoCadastro">Apartamento:</label>
+            <input type="text" id="apartamentoCadastro" name="apartamento" placeholder="Ex: 101, 202">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="matriculaCadastro">Matrícula do Funcionário:</label>
+          <input type="text" id="matriculaCadastro" name="matricula" placeholder="Digite sua matrícula" required>
+        </div>
+        <button type="submit" class="btn-submit">Cadastrar Veículo</button>
+      </form>
+      <div id="resultadoCadastro" class="resultado hidden"></div>
+      
+      <!-- Botão Voltar -->
+      <div style="margin-top: 20px; text-align: center;">
+        <button onclick="voltarPaginaAnterior()" class="btn-voltar">← Voltar</button>
+      </div>
+    </div>
+
+    <!-- Seção: Estacionar Veículo -->
+    <div id="estacionar" class="secao hidden">
+      <h2>🚗 Estacionar Veículo</h2>
+      <form id="formEstacionar" class="form-sistema">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="placaEstacionar">Placa do Veículo:</label>
+            <input type="text" id="placaEstacionar" name="placa" placeholder="ABC1234" required>
+          </div>
+          <div class="form-group">
+            <label for="matriculaEstacionar">Matrícula do Funcionário:</label>
+            <input type="text" id="matriculaEstacionar" name="matricula" placeholder="Digite sua matrícula" required>
+          </div>
+        </div>
+        <button type="submit" class="btn-submit">Estacionar Veículo</button>
+      </form>
+      <div id="resultadoEstacionar" class="resultado hidden"></div>
+    </div>
+
+    <!-- Seção: Registrar Saída -->
+    <div id="saida" class="secao hidden">
+      <h2>🧹 Registrar Saída</h2>
+      <form id="formSaida" class="form-sistema">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="placaSaida">Placa do Veículo:</label>
+            <input type="text" id="placaSaida" name="placa" placeholder="ABC1234" required>
+          </div>
+          <div class="form-group">
+            <label for="matriculaSaida">Matrícula do Funcionário:</label>
+            <input type="text" id="matriculaSaida" name="matricula" placeholder="Digite sua matrícula" required>
+          </div>
+        </div>
+        <button type="submit" class="btn-submit">Registrar Saída</button>
+      </form>
+      <div id="resultadoSaida" class="resultado hidden"></div>
+      
+      <!-- Botão Voltar -->
+      <div style="margin-top: 20px; text-align: center;">
+        <button onclick="voltarPaginaAnterior()" class="btn-voltar">← Voltar</button>
+      </div>
+    </div>
+
+    <!-- Seção: Ver Status das Vagas -->
+    <div id="vagas" class="secao hidden">
+      <h2>📊 Status das Vagas</h2>
+      <button class="btn-info" onclick="carregarVagas()">🔄 Atualizar Status das Vagas</button>
+      <div id="loadingVagas" class="loading hidden">Carregando vagas...</div>
+      <div id="resultadoVagas" class="resultado hidden"></div>
+      <div id="vagasGrid" class="vagas-grid"></div>
+    </div>
+
+    <!-- Seção: Verificar Tempo Excedido -->
+    <div id="tempo" class="secao hidden">
+      <h2>⏱ Verificar Tempo Excedido</h2>
+      <button class="btn-info" onclick="verificarTempoExcedido()">🔍 Verificar Veículos com Tempo Excedido</button>
+      <div id="loadingTempo" class="loading hidden">Verificando...</div>
+      <div id="resultadoTempo" class="resultado hidden"></div>
+    </div>
+
+    <!-- Seção: Remover por CPF -->
+    <div id="remover" class="secao hidden">
+      <h2>❌ Remover Veículo por CPF</h2>
+      <form id="formRemover" class="form-sistema">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cpfRemover">CPF do Proprietário:</label>
+            <input type="text" id="cpfRemover" name="cpf" placeholder="000.000.000-00" required>
+          </div>
+          <div class="form-group">
+            <label for="matriculaRemover">Matrícula do Funcionário:</label>
+            <input type="text" id="matriculaRemover" name="matricula" placeholder="Digite sua matrícula" required>
+          </div>
+        </div>
+        <button type="submit" class="btn-danger">Remover Veículo</button>
+      </form>
+      <div id="resultadoRemover" class="resultado hidden"></div>
+      
+      <!-- Botão Voltar -->
+      <div style="margin-top: 20px; text-align: center;">
+        <button onclick="voltarPaginaAnterior()" class="btn-voltar">← Voltar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Função para abrir seções
+    function abrirSecao(id) {
+      try {
+        console.log('Abrindo seção:', id);
+        
+        // Parar todos os timers quando mudar de seção
+        if (id !== 'vagas') {
+          pararTodosTimers();
+        }
+        
+        // Esconde todas as seções
+        document.querySelectorAll('.secao').forEach(sec => {
+          sec.classList.add('hidden');
+        });
+        
+        // Mostra a seção selecionada
+        const secao = document.getElementById(id);
+        if (secao) {
+          secao.classList.remove('hidden');
+          console.log('Seção', id, 'aberta com sucesso');
+          
+          // Se abrir a seção de vagas, carregar automaticamente
+          if (id === 'vagas') {
+            carregarVagas();
+          }
+        } else {
+          console.error('Seção', id, 'não encontrada');
+        }
+        
+        // Limpa resultados anteriores
+        document.querySelectorAll('.resultado').forEach(res => {
+          res.classList.add('hidden');
+        });
+      } catch (error) {
+        console.error('Erro ao abrir seção:', error);
+      }
+    }
+
+    // Função para mostrar resultado
+    function mostrarResultado(elementId, mensagem, tipo) {
+      const elemento = document.getElementById(elementId);
+      elemento.textContent = mensagem;
+      elemento.className = `resultado ${tipo}`;
+      elemento.classList.remove('hidden');
+    }
+
+    // Função para limpar formulário
+    function limparFormulario(formId) {
+      const form = document.getElementById(formId);
+      if (form) {
+        form.reset();
+      }
+    }
+
+    // Função para fazer requisições AJAX
+    async function fazerRequisicao(url, dados = null, metodo = 'GET') {
+      try {
+        const opcoes = {
+          method: metodo,
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        };
+
+        if (dados) {
+          opcoes.body = JSON.stringify(dados);
+        }
+
+        const resposta = await fetch(url, opcoes);
+        const resultado = await resposta.json();
+        
+        return { sucesso: resposta.ok, dados: resultado };
+      } catch (erro) {
+        return { sucesso: false, dados: { mensagem: 'Erro de conexão: ' + erro.message } };
+      }
+    }
+
+    // Formulário do Supervisor
+    document.getElementById('formSupervisor').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const senha = document.getElementById('senhaSupervisor').value;
+      
+      const resultado = await fazerRequisicao('/login-supervisor', { senha }, 'POST');
+      
+      if (resultado.sucesso) {
+        mostrarResultado('resultadoSupervisor', resultado.dados.mensagem, 'sucesso');
+        // Limpar formulário
+        limparFormulario('formSupervisor');
+        // Redirecionar para área do supervisor após 2 segundos
+        setTimeout(() => {
+          window.location.href = '/supervisor-sistema';
+        }, 2000);
+      } else {
+        mostrarResultado('resultadoSupervisor', resultado.dados.mensagem, 'erro');
+      }
+    });
+
+    // Formulário de Cadastro
+    document.getElementById('formCadastro').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const dados = Object.fromEntries(formData);
+      
+      const resultado = await fazerRequisicao('/cadastrar-veiculo', dados, 'POST');
+      
+      if (resultado.sucesso) {
+        mostrarResultado('resultadoCadastro', resultado.dados.mensagem, 'sucesso');
+        limparFormulario('formCadastro');
+      } else {
+        mostrarResultado('resultadoCadastro', resultado.dados.mensagem, 'erro');
+      }
+    });
+
+    // Formulário de Estacionar
+    document.getElementById('formEstacionar').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const dados = Object.fromEntries(formData);
+      
+      const resultado = await fazerRequisicao('/estacionar', dados, 'POST');
+      
+      if (resultado.sucesso) {
+        let mensagem = resultado.dados.mensagem;
+        if (resultado.dados.proprietario) {
+          mensagem += `\nProprietário: ${resultado.dados.proprietario.nome}`;
+          mensagem += `\nVaga: ${resultado.dados.vaga}`;
+        }
+        mostrarResultado('resultadoEstacionar', mensagem, 'sucesso');
+        limparFormulario('formEstacionar');
+      } else {
+        mostrarResultado('resultadoEstacionar', resultado.dados.mensagem, 'erro');
+      }
+    });
+
+    // Formulário de Saída
+    document.getElementById('formSaida').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const dados = Object.fromEntries(formData);
+      
+      const resultado = await fazerRequisicao('/liberar', dados, 'POST');
+      
+      if (resultado.sucesso) {
+        let mensagem = resultado.dados.mensagem;
+        if (resultado.dados.proprietario) {
+          mensagem += `\nProprietário: ${resultado.dados.proprietario.nome}`;
+        }
+        mostrarResultado('resultadoSaida', mensagem, 'sucesso');
+        limparFormulario('formSaida');
+      } else {
+        mostrarResultado('resultadoSaida', resultado.dados.mensagem, 'erro');
+      }
+    });
+
+    // Formulário de Remover
+    document.getElementById('formRemover').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const dados = Object.fromEntries(formData);
+      
+      const resultado = await fazerRequisicao('/remover-veiculo-cpf', dados, 'POST');
+      
+      if (resultado.sucesso) {
+        mostrarResultado('resultadoRemover', resultado.dados.mensagem, 'sucesso');
+        limparFormulario('formRemover');
+      } else {
+        mostrarResultado('resultadoRemover', resultado.dados.mensagem, 'erro');
+      }
+    });
+
+    // Objeto para armazenar os intervalos dos timers
+    const timersVagas = {};
+
+    // Função para calcular tempo restante em milissegundos
+    function calcularTempoRestante(dataEntrada, limiteHoras = 72) {
+      const agora = new Date().getTime();
+      const entrada = new Date(dataEntrada).getTime();
+      const limite = entrada + (limiteHoras * 60 * 60 * 1000); // 72 horas em ms
+      return limite - agora;
+    }
+
+    // Função para formatar tempo no formato de contagem regressiva
+    function formatarTempoRegressivo(milissegundos) {
+      if (milissegundos <= 0) {
+        return "TEMPO ESGOTADO";
+      }
+      
+      const dias = Math.floor(milissegundos / (1000 * 60 * 60 * 24));
+      const horas = Math.floor((milissegundos % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutos = Math.floor((milissegundos % (1000 * 60 * 60)) / (1000 * 60));
+      const segundos = Math.floor((milissegundos % (1000 * 60)) / 1000);
+      
+      return `${dias}d ${String(horas).padStart(2, '0')}h ${String(minutos).padStart(2, '0')}m ${String(segundos).padStart(2, '0')}s`;
+    }
+
+    // Função para determinar a classe CSS baseada no tempo restante
+    function obterClasseTimer(milissegundos, totalMillis = 72 * 60 * 60 * 1000) {
+      if (milissegundos <= 0) return 'timer-expired';
+      
+      const porcentagemRestante = (milissegundos / totalMillis) * 100;
+      
+      if (porcentagemRestante <= 10) return 'timer-critical';
+      if (porcentagemRestante <= 25) return 'timer-warning';
+      return 'timer-normal';
+    }
+
+    // Função para iniciar timer de uma vaga específica
+    function iniciarTimerVaga(numeroVaga, dataEntrada) {
+      // Limpar timer existente se houver
+      if (timersVagas[numeroVaga]) {
+        clearInterval(timersVagas[numeroVaga]);
+      }
+
+      timersVagas[numeroVaga] = setInterval(() => {
+        const tempoRestante = calcularTempoRestante(dataEntrada);
+        const timerElement = document.getElementById(`timer-${numeroVaga}`);
+        const vagaCard = document.getElementById(`vaga-${numeroVaga}`);
+        
+        if (timerElement && vagaCard) {
+          const tempoFormatado = formatarTempoRegressivo(tempoRestante);
+          const classeTimer = obterClasseTimer(tempoRestante);
+          
+          timerElement.innerHTML = tempoFormatado;
+          timerElement.className = `timer-display ${classeTimer}`;
+          
+          // Atualizar classe do card da vaga se tempo esgotado
+          if (tempoRestante <= 0) {
+            vagaCard.classList.add('tempo-excedido');
+            vagaCard.classList.remove('ocupada');
+          }
+        }
+      }, 1000);
+    }
+
+    // Função para parar todos os timers
+    function pararTodosTimers() {
+      Object.values(timersVagas).forEach(timer => clearInterval(timer));
+      Object.keys(timersVagas).forEach(key => delete timersVagas[key]);
+    }
+
+    // Função para carregar vagas (atualizada com timer)
+    async function carregarVagas() {
+      document.getElementById('loadingVagas').classList.remove('hidden');
+      document.getElementById('resultadoVagas').classList.add('hidden');
+      document.getElementById('vagasGrid').innerHTML = '';
+      
+      // Parar todos os timers existentes antes de carregar novos
+      pararTodosTimers();
+      
+      const resultado = await fazerRequisicao('/vagas-completas');
+      
+      document.getElementById('loadingVagas').classList.add('hidden');
+      
+      if (resultado.sucesso) {
+        const vagas = resultado.dados;
+        const vagasGrid = document.getElementById('vagasGrid');
+        
+        vagas.forEach(vaga => {
+          const vagaCard = document.createElement('div');
+          let cardClass = vaga.ocupada ? 'ocupada' : 'livre';
+          
+          // Verificar se tempo está esgotado para vagas ocupadas
+          if (vaga.ocupada && vaga.entrada) {
+            const tempoRestante = calcularTempoRestante(vaga.entrada);
+            if (tempoRestante <= 0) {
+              cardClass = 'tempo-excedido';
+            }
+          }
+          
+          vagaCard.className = `vaga-card ${cardClass}`;
+          vagaCard.id = `vaga-${vaga.numero}`;
+          
+          let status = '';
+          let timerHtml = '';
+          let veiculoInfo = '';
+          
+          if (vaga.ocupada) {
+            status = `<span class="status-ocupada">🔴 Ocupada por ${vaga.veiculo}</span>`;
+            
+            // Adicionar informações do veículo se disponíveis
+            if (vaga.proprietario) {
+              veiculoInfo = `
+                <div class="veiculo-info">
+                  <strong>Proprietário:</strong> ${vaga.proprietario}<br>
+                  ${vaga.modelo ? `<strong>Modelo:</strong> ${vaga.modelo}<br>` : ''}
+                  ${vaga.bloco ? `<strong>Bloco:</strong> ${vaga.bloco}` : ''}
+                  ${vaga.apartamento ? ` - <strong>Apto:</strong> ${vaga.apartamento}` : ''}
+                </div>
+              `;
+            }
+            
+            // Adicionar timer de contagem regressiva
+            if (vaga.entrada) {
+              const tempoRestante = calcularTempoRestante(vaga.entrada);
+              const tempoFormatado = formatarTempoRegressivo(tempoRestante);
+              const classeTimer = obterClasseTimer(tempoRestante);
+              
+              timerHtml = `
+                <div class="timer-container">
+                  <div class="timer-label">⏰ Tempo restante:</div>
+                  <div id="timer-${vaga.numero}" class="timer-display ${classeTimer}">
+                    ${tempoFormatado}
+                  </div>
+                  <div class="tempo-restante">
+                    Entrada: ${new Date(vaga.entrada).toLocaleString('pt-BR')}
+                  </div>
+                </div>
+              `;
+            }
+          } else {
+            status = `<span class="status-livre">🟢 Livre</span>`;
+          }
+          
+          vagaCard.innerHTML = `
+            <h3>Vaga ${vaga.numero}</h3>
+            <p><strong>Tipo:</strong> ${vaga.tipo}</p>
+            <p>${status}</p>
+            ${veiculoInfo}
+            ${timerHtml}
+          `;
+          
+          vagasGrid.appendChild(vagaCard);
+          
+          // Iniciar timer se a vaga estiver ocupada
+          if (vaga.ocupada && vaga.entrada) {
+            iniciarTimerVaga(vaga.numero, vaga.entrada);
+          }
+        });
+        
+        mostrarResultado('resultadoVagas', `Total de vagas: ${vagas.length}`, 'info');
+      } else {
+        mostrarResultado('resultadoVagas', resultado.dados.mensagem, 'erro');
+      }
+    }
+
+    // Função para verificar tempo excedido
+    async function verificarTempoExcedido() {
+      document.getElementById('loadingTempo').classList.remove('hidden');
+      document.getElementById('resultadoTempo').classList.add('hidden');
+      
+      const resultado = await fazerRequisicao('/tempo-excedido');
+      
+      document.getElementById('loadingTempo').classList.add('hidden');
+      
+      if (resultado.sucesso) {
+        mostrarResultado('resultadoTempo', resultado.dados.mensagem, 'info');
+      } else {
+        mostrarResultado('resultadoTempo', resultado.dados.mensagem, 'erro');
+      }
+    }
+
+    // Inicializar a primeira seção
+    document.addEventListener('DOMContentLoaded', function() {
+      try {
+        console.log('DOM carregado, inicializando...');
+        
+        // Por padrão, mostrar a seção do supervisor
+        abrirSecao('supervisor');
+        
+        console.log('Inicialização concluída');
+      } catch (error) {
+        console.error('Erro na inicialização:', error);
+      }
+    });
+
+    // Limpar timers quando a página for fechada
+    window.addEventListener('beforeunload', function() {
+      pararTodosTimers();
+    });
+
+    // Limpar timers quando navegar para outra página
+    window.addEventListener('unload', function() {
+      pararTodosTimers();
+    });
+
+    // Função para atualizar vagas automaticamente a cada 30 segundos quando na seção de vagas
+    let autoUpdateInterval;
+    
+    function iniciarAtualizacaoAutomatica() {
+      autoUpdateInterval = setInterval(() => {
+        const vagasSection = document.getElementById('vagas');
+        if (vagasSection && !vagasSection.classList.contains('hidden')) {
+          carregarVagas();
+        }
+      }, 30000); // 30 segundos
+    }
+
+    function pararAtualizacaoAutomatica() {
+      if (autoUpdateInterval) {
+        clearInterval(autoUpdateInterval);
+        autoUpdateInterval = null;
+      }
+    }
+
+    // Iniciar atualização automática quando a página carregar
+    document.addEventListener('DOMContentLoaded', function() {
+      iniciarAtualizacaoAutomatica();
+    });
+
+    // Parar atualização automática quando a página for fechada
+    window.addEventListener('beforeunload', function() {
+      pararAtualizacaoAutomatica();
+    });
+  </script>
+  
+  <!-- Carregar script.js para funcionalidades adicionais -->
+  <script src="/static/script.js"></script>
+</body>
+</html> 

@@ -1,0 +1,502 @@
+[
+    {
+        "acao": "entrada_veiculo",
+        "placa": "BEE4R22",
+        "nome": "Falcão Cardoso Falópio   ",
+        "tipo": "morador",
+        "vaga": 1,
+        "data": "2025-07-04T07:26:12.722922-03:00"
+    },
+    {
+        "acao": "remocao_manual",
+        "placa": "BEE4R22",
+        "cpf": "52998224725",
+        "funcionario": "JoÃ£o Carlos Ferreira Nascimento",
+        "matricula": "0001",
+        "data": "2025-07-04T07:33:17.624008-03:00"
+    },
+    {
+        "acao": "entrada_veiculo",
+        "placa": "BEE4R22",
+        "nome": "Falcão Cardoso Falópio ",
+        "tipo": "morador",
+        "vaga": 1,
+        "data": "2025-07-04T10:02:34.509286-03:00"
+    },
+    {
+        "acao": "entrada_veiculo",
+        "placa": "BCE4F33",
+        "nome": "Romano Pereira Carvalho",
+        "tipo": "morador",
+        "vaga": 2,
+        "data": "2025-07-04T10:13:40.827737-03:00"
+    },
+    {
+        "acao": "entrada_veiculo",
+        "placa": "ADE7F32",
+        "nome": "Vagener Moreira costa ",
+        "tipo": "morador",
+        "vaga": 3,
+        "data": "2025-07-04T10:19:57.518747-03:00"
+    },
+    {
+        "acao": "remocao_manual",
+        "placa": "ADE7F32",
+        "cpf": "123.456.789-09",
+        "funcionario": "JoÃ£o Carlos Ferreira Nascimento",
+        "matricula": "0001",
+        "data": "2025-07-04T10:22:24.742991-03:00"
+    },
+    {
+        "acao": "entrada_veiculo",
+        "placa": "ADE7F32",
+        "nome": "Vagener Moreira costa ",
+        "tipo": "morador",
+        "vaga": 3,
+        "data": "2025-07-04T10:39:29.714338-03:00"
+    },
+    {
+        "acao": "saida_veiculo",
+        "placa": "BEE4R22",
+        "nome": "Falcão Cardoso Falópio ",
+        "vaga": 1,
+        "tempo_min": 58,
+        "funcionario": "JoÃ£o Carlos Ferreira Nascimento",
+        "matricula": "0001",
+        "data_saida": "2025-07-04T11:00:09.453814-03:00"
+    },
+    {
+        "acao": "entrada_veiculo",
+        "placa": "BEE4R22",
+        "nome": "Falcão Cardoso Falópio ",
+        "tipo": "morador",
+        "vaga": 1,
+        "data": "2025-07-04T11:07:34.924008-03:00"
+    },
+    {
+        "acao": "saida_veiculo",
+        "placa": "BCE4F33",
+        "nome": "Romano Pereira Carvalho",
+        "vaga": 2,
+        "tempo_min": 55,
+        "funcionario": "JoÃ£o Carlos Ferreira Nascimento",
+        "matricula": "0001",
+        "data_saida": "2025-07-04T11:08:16.692682-03:00"
+    },
+    {
+        "acao": "saida_veiculo",
+        "placa": "BEE4R22",
+        "nome": "Falcão Cardoso Falópio ",
+        "vaga": 1,
+        "tempo_min": 1,
+        "funcionario": "JoÃ£o Carlos Ferreira Nascimento",
+        "matricula": "0001",
+        "data_saida": "2025-07-04T11:08:39.705944-03:00"
+    },
+    {
+        "acao": "entrada_veiculo",
+        "placa": "BDA5H58",
+        "nome": "Jorge Mateus",
+        "tipo": "morador",
+        "vaga": 1,
+        "data": "2025-07-04T13:02:08.130885-03:00"
+    },
+    {
+        "acao": "entrada_veiculo",
+        "placa": "BEE4R22",
+        "nome": "Falcão Cardoso Falópio ",
+        "tipo": "morador",
+        "vaga": 2,
+        "data": "2025-07-04T13:18:03.599554-03:00"
+    },
+    {
+        "acao": "entrada_veiculo",
+        "placa": "BCE4F33",
+        "nome": "Romano Pereira Carvalho",
+        "tipo": "morador",
+        "vaga": 4,
+        "data": "2025-07-04T13:22:12.310087-03:00"
+    },
+    {
+        "acao": "saida_veiculo",
+        "placa": "BEE4R22",
+        "nome": "Falcão Cardoso Falópio ",
+        "vaga": 2,
+        "tempo_min": 6,
+        "funcionario": "JoÃ£o Carlos Ferreira Nascimento",
+        "matricula": "0001",
+        "data_saida": "2025-07-04T13:24:07.844056-03:00"
+    },
+    {
+        "acao": "entrada_veiculo",
+        "placa": "AVX9F34",
+        "nome": "Roberto carlos Oliveira",
+        "tipo": "morador",
+        "vaga": 2,
+        "data": "2025-07-04T15:57:23.780364-03:00"
+    },
+    {
+        "acao": "saida_veiculo",
+        "placa": "BDA5H58",
+        "nome": "Jorge Mateus",
+        "vaga": 1,
+        "tempo_min": 221,
+        "funcionario": "Anderson Pestana",
+        "matricula": "0003",
+        "data_saida": "2025-07-04T16:42:46.319004-03:00"
+    },
+    {
+        "acao": "saida_veiculo",
+        "placa": "AVX9F34",
+        "nome": "Roberto carlos Oliveira",
+        "vaga": 2,
+        "tempo_min": 46,
+        "funcionario": "Laura ConceiÃ§Ã£o Cardoso",
+        "matricula": "0002",
+        "data_saida": "2025-07-04T16:43:05.991851-03:00"
+    },
+    {
+        "acao": "saida_veiculo",
+        "placa": "ADE7F32",
+        "nome": "Vagener Moreira costa ",
+        "vaga": 3,
+        "tempo_min": 364,
+        "funcionario": "JoÃ£o Carlos Ferreira Nascimento",
+        "matricula": "0001",
+        "data_saida": "2025-07-04T16:43:23.793444-03:00"
+    },
+    {
+        "acao": "saida_veiculo",
+        "placa": "BCE4F33",
+        "nome": "Romano Pereira Carvalho",
+        "vaga": 4,
+        "tempo_min": 201,
+        "funcionario": "Laura ConceiÃ§Ã£o Cardoso",
+        "matricula": "0002",
+        "data_saida": "2025-07-04T16:43:40.609684-03:00"
+    },
+    {
+        "acao": "entrada_veiculo",
+        "placa": "BEE4R22",
+        "nome": "Falcão Cardoso Falópio ",
+        "tipo": "morador",
+        "vaga": 1,
+        "data": "2025-07-04T16:52:56.675653-03:00"
+    },
+    {
+        "acao": "entrada_veiculo",
+        "placa": "BCE4F33",
+        "nome": "Romano Pereira Carvalho",
+        "tipo": "morador",
+        "vaga": 2,
+        "data": "2025-07-04T16:53:38.335567-03:00"
+    },
+    {
+        "acao": "entrada_veiculo",
+        "placa": "ADE7F32",
+        "nome": "Vagener Moreira costa ",
+        "tipo": "morador",
+        "vaga": 3,
+        "data": "2025-07-04T16:53:59.695252-03:00"
+    },
+    {
+        "acao": "saida_veiculo",
+        "placa": "BEE4R22",
+        "nome": "Falcão Cardoso Falópio ",
+        "vaga": 1,
+        "tempo_min": 14,
+        "funcionario": "JoÃ£o Carlos Ferreira Nascimento",
+        "matricula": "0001",
+        "data_saida": "2025-07-04T17:06:48.871428-03:00"
+    },
+    {
+        "acao": "saida_veiculo",
+        "placa": "BCE4F33",
+        "nome": "Romano Pereira Carvalho",
+        "vaga": 2,
+        "tempo_min": 13,
+        "funcionario": "Laura ConceiÃ§Ã£o Cardoso",
+        "matricula": "0002",
+        "data_saida": "2025-07-04T17:07:01.639111-03:00"
+    },
+    {
+        "acao": "saida_veiculo",
+        "placa": "ADE7F32",
+        "nome": "Vagener Moreira costa ",
+        "vaga": 3,
+        "tempo_min": 13,
+        "funcionario": "JoÃ£o Carlos Ferreira Nascimento",
+        "matricula": "0001",
+        "data_saida": "2025-07-04T17:07:16.287096-03:00"
+    },
+    {
+        "acao": "entrada_veiculo",
+        "placa": "BEE4R22",
+        "nome": "Falcão Cardoso Falópio ",
+        "tipo": "morador",
+        "vaga": 1,
+        "data": "2025-07-04T17:11:30.573115-03:00"
+    },
+    {
+        "acao": "entrada_veiculo",
+        "placa": "ADE7F32",
+        "nome": "Vagener Moreira costa ",
+        "tipo": "morador",
+        "vaga": 2,
+        "data": "2025-07-04T17:12:03.319178-03:00"
+    },
+    {
+        "acao": "entrada_veiculo",
+        "placa": "BCE4F33",
+        "nome": "Romano Pereira Carvalho",
+        "tipo": "morador",
+        "vaga": 3,
+        "data": "2025-07-04T17:12:37.263508-03:00"
+    },
+    {
+        "acao": "entrada_veiculo",
+        "placa": "AVX9F34",
+        "nome": "Roberto carlos Oliveira",
+        "tipo": "morador",
+        "vaga": 4,
+        "data": "2025-07-04T17:18:47.689264-03:00"
+    },
+    {
+        "acao": "saida_veiculo",
+        "placa": "BEE4R22",
+        "nome": "Falcão Cardoso Falópio ",
+        "vaga": 1,
+        "tempo_min": 12,
+        "funcionario": "JoÃ£o Carlos Ferreira Nascimento",
+        "matricula": "0001",
+        "data_saida": "2025-07-04T17:23:16.993374-03:00"
+    },
+    {
+        "acao": "saida_veiculo",
+        "placa": "BCE4F33",
+        "nome": "Romano Pereira Carvalho",
+        "vaga": 3,
+        "tempo_min": 11,
+        "funcionario": "Laura ConceiÃ§Ã£o Cardoso",
+        "matricula": "0002",
+        "data_saida": "2025-07-04T17:23:34.008161-03:00"
+    },
+    {
+        "acao": "saida_veiculo",
+        "placa": "ADE7F32",
+        "nome": "Vagener Moreira costa ",
+        "vaga": 2,
+        "tempo_min": 16,
+        "funcionario": "JoÃ£o Carlos Ferreira Nascimento",
+        "matricula": "0001",
+        "data_saida": "2025-07-04T17:28:27.374363-03:00"
+    },
+    {
+        "acao": "saida_veiculo",
+        "placa": "AVX9F34",
+        "nome": "Roberto carlos Oliveira",
+        "vaga": 4,
+        "tempo_min": 33,
+        "funcionario": "Laura ConceiÃ§Ã£o Cardoso",
+        "matricula": "0002",
+        "data_saida": "2025-07-04T17:51:46.583448-03:00"
+    },
+    {
+        "acao": "entrada_veiculo",
+        "placa": "AVX9F34",
+        "nome": "Roberto carlos Oliveira",
+        "tipo": "morador",
+        "vaga": 1,
+        "data": "2025-07-04T18:20:58.675824-03:00"
+    },
+    {
+        "acao": "saida_veiculo",
+        "placa": "AVX9F34",
+        "nome": "Roberto carlos Oliveira",
+        "vaga": 1,
+        "tempo_min": 10,
+        "funcionario": "JoÃ£o Carlos Ferreira Nascimento",
+        "matricula": "0001",
+        "data_saida": "2025-07-04T18:31:17.199893-03:00"
+    },
+    {
+        "acao": "entrada_veiculo",
+        "placa": "BEE4R22",
+        "nome": "Falcão Cardoso Falópio ",
+        "tipo": "morador",
+        "vaga": 1,
+        "data": "2025-07-04T18:33:29.084418-03:00"
+    },
+    {
+        "acao": "saida_veiculo",
+        "placa": "BEE4R22",
+        "nome": "Falcão Cardoso Falópio ",
+        "vaga": 1,
+        "tempo_min": 11,
+        "funcionario": "Anderson Pestana",
+        "matricula": "0003",
+        "data_saida": "2025-07-04T18:44:36.303083-03:00"
+    },
+    {
+        "acao": "entrada_veiculo",
+        "placa": "BEE4R22",
+        "nome": "Falcão Cardoso Falópio ",
+        "tipo": "morador",
+        "vaga": 1,
+        "data": "2025-07-04T18:49:58.526661-03:00"
+    },
+    {
+        "acao": "saida_veiculo",
+        "placa": "BEE4R22",
+        "nome": "Falcão Cardoso Falópio ",
+        "vaga": 1,
+        "tempo_min": 11,
+        "funcionario": "JoÃ£o Carlos Ferreira Nascimento",
+        "matricula": "0001",
+        "data_saida": "2025-07-04T19:00:34.930060-03:00"
+    },
+    {
+        "acao": "entrada_veiculo",
+        "placa": "BEE4R22",
+        "nome": "Falcão Cardoso Falópio ",
+        "tipo": "morador",
+        "vaga": 1,
+        "data": "2025-07-04T19:22:50.871928-03:00"
+    },
+    {
+        "acao": "entrada_veiculo",
+        "placa": "BDA5H58",
+        "nome": "Jorge Mateus",
+        "tipo": "morador",
+        "vaga": 2,
+        "data": "2025-07-05T09:35:54.729097-03:00"
+    },
+    {
+        "acao": "saida_veiculo",
+        "placa": "BEE4R22",
+        "nome": "Falcão Cardoso Falópio ",
+        "vaga": 1,
+        "tempo_min": 854,
+        "funcionario": "Anderson Pestana",
+        "matricula": "0003",
+        "data_saida": "2025-07-05T09:36:35.329951-03:00"
+    },
+    {
+        "acao": "saida_veiculo",
+        "placa": "BDA5H58",
+        "nome": "Jorge Mateus",
+        "vaga": 2,
+        "tempo_min": 296,
+        "funcionario": "JoÃ£o Carlos Ferreira Nascimento",
+        "matricula": "0001",
+        "data_saida": "2025-07-05T14:32:10.627235-03:00"
+    },
+    {
+        "acao": "entrada_veiculo",
+        "placa": "BEE4R22",
+        "nome": "Falcão Cardoso Falópio ",
+        "tipo": "morador",
+        "vaga": 1,
+        "data": "2025-07-26T16:43:55.577340-03:00"
+    },
+    {
+        "acao": "login",
+        "matricula": "0001",
+        "nome": "João Carlos Ferreira Nascimento",
+        "data": "2025-07-26T21:01:25.483294-03:00"
+    },
+    {
+        "acao": "login",
+        "matricula": "0001",
+        "nome": "João Carlos Ferreira Nascimento",
+        "data": "2025-07-26T21:24:43.737586-03:00"
+    },
+    {
+        "acao": "entrada_veiculo",
+        "placa": "BCE4F33",
+        "nome": "Romano Pereira Carvalho",
+        "tipo": "morador",
+        "vaga": 2,
+        "data": "2025-07-26T21:24:57.321127-03:00"
+    },
+    {
+        "acao": "login",
+        "matricula": "0001",
+        "nome": "João Carlos Ferreira Nascimento",
+        "data": "2025-07-26T21:43:32.393255-03:00"
+    },
+    {
+        "acao": "saida_veiculo",
+        "placa": "BEE4R22",
+        "nome": "Falcão Cardoso Falópio",
+        "vaga": 1,
+        "tempo_min": 300,
+        "funcionario": "João Carlos Ferreira Nascimento",
+        "matricula": "0001",
+        "data_saida": "2025-07-26T21:44:19.359805-03:00"
+    },
+    {
+        "acao": "entrada_veiculo",
+        "placa": "AVX9F34",
+        "nome": "Roberto Carlos Oliveira",
+        "tipo": "morador",
+        "vaga": 1,
+        "data": "2025-07-26T22:53:38.380545-03:00"
+    },
+    {
+        "acao": "login",
+        "matricula": "0001",
+        "nome": "João Carlos Ferreira Nascimento",
+        "data": "2025-07-27T08:37:18.266884-03:00"
+    },
+    {
+        "acao": "login",
+        "matricula": "0001",
+        "nome": "João Carlos Ferreira Nascimento",
+        "data": "2025-07-27T10:17:40.243459-03:00"
+    },
+    {
+        "acao": "logout",
+        "matricula": "0001",
+        "nome": "João Carlos Ferreira Nascimento",
+        "data": "2025-07-27T10:17:46.768485-03:00"
+    },
+    {
+        "acao": "login",
+        "matricula": "0001",
+        "nome": "João Carlos Ferreira Nascimento",
+        "data": "2025-07-27T10:17:58.938171-03:00"
+    },
+    {
+        "acao": "logout",
+        "matricula": "0001",
+        "nome": "João Carlos Ferreira Nascimento",
+        "data": "2025-07-27T10:18:33.897295-03:00"
+    },
+    {
+        "acao": "login",
+        "matricula": "0001",
+        "nome": "João Carlos Ferreira Nascimento",
+        "data": "2025-08-09T19:43:48.181358-03:00"
+    },
+    {
+        "acao": "saida_veiculo",
+        "placa": "AVX9F34",
+        "nome": "Roberto Carlos Oliveira",
+        "vaga": 1,
+        "tempo_min": 19972,
+        "funcionario": "João Carlos Ferreira Nascimento",
+        "matricula": "0001",
+        "data_saida": "2025-08-09T19:45:14.146207-03:00"
+    },
+    {
+        "acao": "saida_veiculo",
+        "placa": "BCE4F33",
+        "nome": "Romano Pereira Carvalho",
+        "vaga": 2,
+        "tempo_min": 20061,
+        "funcionario": "João Carlos Ferreira Nascimento",
+        "matricula": "0001",
+        "data_saida": "2025-08-09T19:45:30.951664-03:00"
+    }
+]

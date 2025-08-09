@@ -1,0 +1,14 @@
+# === Dependências principais ===
+Flask==3.0.0
+Flask-CORS==4.0.0
+pytz==2024.1
+
+# === Dependências condicionais ===
+backports.zoneinfo; python_version<"3.9"
+
+# === Dependências de desenvolvimento (opcionais) ===
+# pytest==7.4.4
+# pytest-cov==4.1.0
+# black==23.12.1
+# flake8==7.0.0
+

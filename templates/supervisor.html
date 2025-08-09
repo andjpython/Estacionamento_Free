@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Área do Supervisor</title>
+  <link rel="icon" type="image/png" href="/static/imagens/icon.png">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="card-title"><span class="icon">👨‍💼</span><span>Área do Supervisor</span></div>
+    <p id="mensagemLogin" style="color: #1b5e20; font-weight: bold;">Login confirmado com sucesso!</p>
+    <p><strong>Supervisor:</strong> {{ nome_supervisor }}</p>
+    <div style="margin-top: 20px; text-align: center;">
+      <button onclick="logoutSupervisor()" style="
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+      ">🚪 Logout Supervisor</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="card-title"><span class="icon">🟢</span><span>Funcionários Logados</span></div>
+    <button onclick="listarLogados()">Listar Logados</button>
+    <ul id="listaLogados"></ul>
+  </div>
+
+  <div class="container">
+    <div class="card-title"><span class="icon">📜</span><span>Histórico dos Serviços por Matrícula</span></div>
+    <form id="formHistoricoMatricula">
+      <input type="text" name="matricula" placeholder="Matrícula do funcionário" required>
+      <button type="submit">Buscar Histórico</button>
+    </form>
+    <ul id="listaHistorico"></ul>
+  </div>
+
+  <script src="/static/script.js"></script>
+  <script>
+    // Listar funcionários logados
+    async function listarLogados() {
+      const res = await fetch('/funcionarios-logados');
+      const lista = document.getElementById('listaLogados');
+      lista.innerHTML = '';
+      const dados = await res.json();
+      if (dados.length === 0) {
+        lista.innerHTML = '<li>Nenhum funcionário logado.</li>';
+      } else {
+        for (const funcionario of dados) {
+          const li = document.createElement('li');
+          li.innerHTML = `<strong>${funcionario.nome}</strong> (Matrícula: ${funcionario.matricula})`;
+          lista.appendChild(li);
+        }
+      }
+    }
+
+    // Buscar histórico por matrícula
+    document.getElementById('formHistoricoMatricula').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const matricula = this.matricula.value;
+      const res = await fetch(`/historico-matricula?matricula=${matricula}`);
+      const lista = document.getElementById('listaHistorico');
+      lista.innerHTML = '';
+      const dados = await res.json();
+      if (dados.length === 0) {
+        lista.innerHTML = '<li>Nenhum registro encontrado.</li>';
+      } else {
+        for (const h of dados) {
+          // Ajustar data/hora para o fuso de Brasília
+          let dataFormatada = '-';
+          if (h.data) {
+            const dt = new Date(h.data);
+            dataFormatada = dt.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+          } else if (h.data_saida) {
+            const dt = new Date(h.data_saida);
+            dataFormatada = dt.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+          }
+          const placa = h.placa || '-';
+          const nome = h.nome || '-';
+          const acao = h.acao || '-';
+          const detalhes = h.detalhes || '';
+          const li = document.createElement('li');
+          li.innerHTML = `<strong>${dataFormatada}</strong> — <b>${acao}</b> — <b>Placa:</b> ${placa} — <b>Nome:</b> ${nome} ${detalhes ? '— <b>Detalhes:</b> ' + detalhes : ''}`;
+          lista.appendChild(li);
+        }
+      }
+      // Limpar formulário após envio
+      this.reset();
+    });
+  </script>
+</body>
+</html> 

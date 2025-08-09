@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estacionamento Rotativo - Recantos das Flores I</title>
+  <link rel="icon" type="image/png" href="/static/imagens/icon.png">
+  <link rel="stylesheet" href="/static/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Bahnschrift:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body onload="iniciarAnimacao()">
+  <!-- Header Profissional R@MANOS TECHNOLOGY -->
+  <header class="developer-header">
+    <div class="developer-header-container">
+      <div class="developer-brand">
+        <img src="/static/imagens/logo_da_empresa.jpg" alt="R@MANOS TECHNOLOGY" class="developer-header-logo">
+        <div class="developer-header-text">
+          <span class="developer-header-name">R@MANOS TECHNOLOGY</span>
+          <span class="developer-header-tagline">Soluções Tecnológicas Inovadoras</span>
+        </div>
+      </div>
+      <div class="developer-header-info">
+        <span class="project-label">Projeto:</span>
+        <span class="project-name">Sistema de Estacionamento Rotativo</span>
+      </div>
+    </div>
+  </header>
+
+  <nav class="navbar">
+    <div class="navbar-logo">
+      <img src="/static/imagens/logo_recanto_das_flores.png" alt="Logo Recantos das Flores" height="80">
+      <span class="logo-text">Recantos das Flores I</span>
+    </div>
+    <ul class="navbar-links">
+      <li><a href="#inicio">Início</a></li>
+      <li><a href="#sobre">Sobre</a></li>
+      <li><a href="#galeria">Galeria</a></li>
+      <li><a href="#contato">Contato</a></li>
+      <li><a href="#" onclick="abrirModalLogin()">Entrada</a></li>
+    </ul>
+  </nav>
+
+  <!-- Modal de Login -->
+  <div id="modalLogin" class="modal-login">
+    <div class="modal-content">
+      <span class="close-modal" onclick="fecharModalLogin()">&times;</span>
+      <h2>Área de Login</h2>
+      <div class="login-forms">
+        <form id="loginFuncionarioForm" class="login-form">
+          <h3>Login Funcionário</h3>
+          <input type="text" id="matriculaFuncionario" name="matriculaFuncionario" placeholder="Matrícula" required>
+          <button type="submit">Entrar</button>
+        </form>
+        <form id="loginSupervisorForm" class="login-form">
+          <h3>Login Supervisor</h3>
+          <input type="password" id="senhaSupervisor" name="senhaSupervisor" placeholder="Senha" required>
+          <button type="submit">Entrar</button>
+        </form>
+      </div>
+      <div style="text-align: center; margin-top: 30px;">
+        <div id="sistemaAcessoContainer">
+          <!-- Botão quando não logado -->
+          <div id="sistemaNaoLogado" class="sistema-acesso">
+            <div style="
+              display: inline-block;
+              background: linear-gradient(135deg, #ccc 0%, #999 100%);
+              color: #666;
+              text-decoration: none;
+              padding: 15px 30px;
+              border-radius: 8px;
+              font-weight: 600;
+              font-size: 16px;
+              cursor: not-allowed;
+              opacity: 0.6;
+            ">🔒 Acesso Restrito - Faça Login Primeiro</div>
+          </div>
+          
+          <!-- Botão quando logado -->
+          <div id="sistemaLogado" class="sistema-acesso" style="display: none;">
+            <a href="/sistema" class="btn-sistema" style="
+              display: inline-block;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              color: white;
+              text-decoration: none;
+              padding: 15px 30px;
+              border-radius: 8px;
+              font-weight: 600;
+              font-size: 16px;
+              transition: all 0.3s ease;
+              box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            ">🚀 Acessar Sistema Completo</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="imagens-flutuantes" aria-hidden="true"></div>
+  <header id="inicio" class="banner-condominio" aria-label="Banner do condomínio Recantos das Flores I">
+    <h1>🌸 Recantos das Flores I</h1>
+    <h2>Estacionamento Rotativo Profissional</h2>
+  </header>
+  <main>
+    <section aria-label="Notificações e Frases" class="notificacoes-section">
+      <div id="containerPopup">
+        <div id="notificacoesVagas" aria-label="Notificações de tempo excedido"></div>
+      </div>
+      <div id="notificacoesTempoBox" aria-label="Notificações de veículos que ultrapassaram o tempo">
+        <span class="notificacoes-titulo"><b><i>✅ Notificações de veículos<br>que ultrapassaram o tempo!</i></b></span>
+        <div style="margin-top: 10px; font-size: 0.9em; color: #2d5016;">
+          <i>🔄 Carregando sistema de notificações...</i>
+        </div>
+      </div>
+      <div id="frasesMotivacionaisBox" aria-label="Frases motivacionais">
+        <div class="frase-motivacional">
+          <span class="frase-texto" id="fraseAtual" aria-live="polite"></span>
+        </div>
+      </div>
+    </section>
+    <section class="painel-section" aria-label="Painel de horário e funcionários logados">
+      <aside id="painel-horario" aria-label="Horário de Brasília">
+        <h3>Horário de Brasília</h3>
+        <div id="horaBrasilia" class="hora-digital">--:--:--</div>
+        <div id="dataBrasilia" class="data-digital"></div>
+        <div class="localizacao">Madureira</div>
+      </aside>
+      <aside id="funcionariosLogadosBox" aria-label="Funcionários logados">
+        <h3>FUNCIONÁRIOS LOGADOS</h3>
+        <ul id="listaFuncionariosLogados"></ul>
+        <div id="logoutSection" style="margin-top: 15px; text-align: center;">
+          <button onclick="logoutFuncionario()" class="btn-logout">🚪 Logout Funcionário</button>
+        </div>
+      </aside>
+    </section>
+    <section id="sobre" class="institucional-section" aria-label="Sobre o Empreendimento">
+      <h2>🚗 Sobre o Empreendimento</h2>
+      <p>O <b>Recantos das Flores I</b> apresenta um estacionamento rotativo inteligente, projetado para trazer mais organização, segurança e agilidade ao dia a dia de moradores, visitantes e colaboradores.</p>
+      <p>Nosso sistema automatizado proporciona controle total do tempo de permanência, transparência nas operações e comunicação em tempo real, elevando o padrão de gestão do espaço.</p>
+      <ul class="diferenciais-lista">
+        <li>✅ Vagas em área aberta, amplas e bem sinalizadas</li>
+        <li>✅ Monitoramento 24 horas com segurança reforçada</li>
+        <li>✅ Controle de acesso digital com tecnologia moderna</li>
+        <li>✅ Notificações automáticas em caso de tempo excedido</li>
+        <li>✅ Equipe treinada com foco em atendimento humanizado</li>
+      </ul>
+      <div class="beneficios-section">
+        <h3>Benefícios para todos os usuários:</h3>
+        <ul class="beneficios-lista">
+          <li>• Evita uso indevido das vagas</li>
+          <li>• Reduz conflitos e garante rotatividade</li>
+          <li>• Gera economia com tempo otimizado</li>
+          <li>• Proporciona mais conforto e previsibilidade</li>
+        </ul>
+      </div>
+      <div class="localizacao-mapa">
+        <h3>Localização</h3>
+        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3675.123456789!2d-43.3456789!3d-22.8754321!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9999999999999999%3A0xaaaaaaaaaaaaaaaa!2sRecantos%20das%20Flores%20I!5e0!3m2!1spt-BR!2sbr!4v1680000000000!5m2!1spt-BR!2sbr" width="100%" height="220" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+    </section>
+    <section id="galeria" class="galeria-section" aria-label="Galeria de Fotos">
+      <h2>🏙️ Galeria de Fotos</h2>
+      <div class="galeria-container">
+        <div class="galeria-track" id="galeriaTrack">
+          <!-- As imagens serão inseridas dinamicamente via JavaScript -->
+        </div>
+      </div>
+    </section>
+    <section id="contato" class="contato-section" aria-label="Contato">
+      <h2>Contato</h2>
+      <form class="contato-form" autocomplete="off">
+        <label for="nomeContato">Nome:</label>
+        <input type="text" id="nomeContato" name="nomeContato" required>
+        <label for="emailContato">E-mail:</label>
+        <input type="email" id="emailContato" name="emailContato" required>
+        <label for="mensagemContato">Mensagem:</label>
+        <textarea id="mensagemContato" name="mensagemContato" rows="4" required></textarea>
+        <button type="submit">Enviar</button>
+      </form>
+      <div class="contato-info">
+        <p><b>Telefone:</b> (21) 967105298</p>
+        <p><b>WhatsApp:</b> (21) 967105298</p>
+        <p><b>E-mail:</b> andjsilveira@hotmail.com</p>
+      </div>
+    </section>
+  </main>
+  <!-- Footer Profissional -->
+  <footer class="footer-profissional">
+    <div class="footer-container">
+      <!-- Seção Principal do Footer -->
+      <div class="footer-main">
+        <!-- Coluna da Empresa -->
+        <div class="footer-column">
+          <div class="footer-brand">
+            <img src="/static/imagens/logo_recanto_das_flores.png" alt="Logo Recantos das Flores" class="footer-logo">
+            <h3>Recantos das Flores I</h3>
+            <p class="footer-tagline">Estacionamento Rotativo Inteligente</p>
+          </div>
+          <p class="footer-description">
+            Sistema moderno de gestão de estacionamento com tecnologia avançada, 
+            proporcionando segurança, organização e praticidade para moradores e visitantes.
+          </p>
+          <div class="footer-social">
+            <a href="#" class="social-link" aria-label="Facebook">
+              <i class="fab fa-facebook-f"></i>
+            </a>
+            <a href="#" class="social-link" aria-label="Instagram">
+              <i class="fab fa-instagram"></i>
+            </a>
+            <a href="#" class="social-link" aria-label="LinkedIn">
+              <i class="fab fa-linkedin-in"></i>
+            </a>
+            <a href="#" class="social-link" aria-label="WhatsApp">
+              <i class="fab fa-whatsapp"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Coluna de Navegação -->
+        <div class="footer-column">
+          <h4>Navegação</h4>
+          <ul class="footer-links">
+            <li><a href="#inicio">Início</a></li>
+            <li><a href="#sobre">Sobre o Empreendimento</a></li>
+            <li><a href="#galeria">Galeria de Fotos</a></li>
+            <li><a href="#contato">Contato</a></li>
+            <li><a href="/sistema">Sistema de Gestão</a></li>
+          </ul>
+        </div>
+
+        <!-- Coluna de Serviços -->
+        <div class="footer-column">
+          <h4>Serviços</h4>
+          <ul class="footer-links">
+            <li><a href="#">Gestão de Vagas</a></li>
+            <li><a href="#">Controle de Acesso</a></li>
+            <li><a href="#">Monitoramento 24h</a></li>
+            <li><a href="#">Relatórios Gerenciais</a></li>
+            <li><a href="#">Suporte Técnico</a></li>
+          </ul>
+        </div>
+
+        <!-- Coluna de Contato -->
+        <div class="footer-column">
+          <h4>Contato</h4>
+          <div class="footer-contact">
+            <div class="contact-item">
+              <i class="fas fa-phone"></i>
+              <span>(21) 967105298</span>
+            </div>
+            <div class="contact-item">
+              <i class="fab fa-whatsapp"></i>
+              <span>(21) 967105298</span>
+            </div>
+            <div class="contact-item">
+              <i class="fas fa-envelope"></i>
+              <span>andjsilveira@hotmail.com</span>
+            </div>
+            <div class="contact-item">
+              <i class="fas fa-map-marker-alt"></i>
+              <span>Madureira, Rio de Janeiro - RJ</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coluna de Newsletter -->
+        <div class="footer-column">
+          <h4>Newsletter</h4>
+          <p class="newsletter-text">Receba atualizações sobre o sistema e novidades do condomínio.</p>
+          <form class="newsletter-form" action="#" method="post">
+            <div class="newsletter-input-group">
+              <input type="email" placeholder="Seu e-mail" required>
+              <button type="submit" class="newsletter-btn">
+                <i class="fas fa-paper-plane"></i>
+              </button>
+            </div>
+          </form>
+          <div class="footer-certificates">
+            <div class="certificate-badge">
+              <i class="fas fa-shield-alt"></i>
+              <span>Sistema<br>Seguro</span>
+            </div>
+            <div class="certificate-badge">
+              <i class="fas fa-clock"></i>
+              <span>Suporte<br>24/7</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Linha Divisória -->
+      <div class="footer-divider"></div>
+
+      <!-- Footer Bottom -->
+      <div class="footer-bottom">
+        <div class="footer-bottom-left">
+          <div class="company-info">
+            <span class="copyright">© 2025 Recantos das Flores I - Estacionamento Rotativo. Todos os direitos reservados.</span>
+          </div>
+        </div>
+        
+        <div class="footer-bottom-center">
+          <div class="developer-info">
+            <span>Desenvolvido pela</span>
+            <div class="company-brand">
+              <div class="company-logo-container">
+                <img src="/static/imagens/logo_da_empresa.jpg" alt="R@MANOS TECHNOLOGY" class="company-logo">
+                <div class="company-text">
+                  <span class="company-name">R@MANOS TECHNOLOGY</span>
+                  <div class="company-tagline">Soluções Tecnológicas Inovadoras</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-bottom-right">
+          <div class="footer-legal">
+            <a href="#">Política de Privacidade</a>
+            <span class="separator">•</span>
+            <a href="#">Termos de Uso</a>
+            <span class="separator">•</span>
+            <a href="#">LGPD</a>
+          </div>
+        </div>
+      </div>
+
+              <!-- Badge Tecnologia -->
+        <div class="technology-badge">
+          <div class="tech-info">
+            <div class="tech-logo-section">
+              <img src="/static/imagens/logo_da_empresa.jpg" alt="R@MANOS TECHNOLOGY" class="tech-badge-logo">
+              <div class="tech-text">
+                <span>Powered by <strong>R@MANOS TECHNOLOGY</strong></span>
+                <div class="tech-stack">
+                  <span class="tech-item">Python</span>
+                  <span class="tech-item">Flask</span>
+                  <span class="tech-item">JavaScript</span>
+                  <span class="tech-item">CSS3</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+  </footer>
+  <script src="/static/script.js"></script>
+</body>
+</html>
