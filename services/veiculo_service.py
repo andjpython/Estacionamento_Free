@@ -1,7 +1,13 @@
+"""
+Serviço de gerenciamento de veículos
+"""
 import re
 from datetime import datetime
 import pytz
+from sqlalchemy.orm import Session
 from config import active_config
+from models import Veiculo
+from repositories import VeiculoRepository
 
 # === Funções de validação ===
 def validar_placa(placa):
@@ -56,7 +62,10 @@ def normalizar_placa(placa):
     return placa.replace(" ", "").upper().strip()
 
 # === Cadastro de veículo ===
-def cadastrar_veiculo(veiculos, placa, cpf, modelo, nome, bloco, apartamento):
+def cadastrar_veiculo(db: Session, placa: str, cpf: str, modelo: str, nome: str, bloco: str, apartamento: str) -> str:
+    """Cadastra um novo veículo no sistema"""
+    repo = VeiculoRepository(db)
+    
     # Normalizar dados de entrada
     placa = normalizar_placa(placa)
     cpf = normalizar_cpf(cpf)
@@ -66,7 +75,7 @@ def cadastrar_veiculo(veiculos, placa, cpf, modelo, nome, bloco, apartamento):
     apartamento = apartamento.strip() if apartamento else ""
     
     # Validações
-    if any(v['placa'] == placa for v in veiculos):
+    if repo.get_by_placa(placa):
         return active_config.Mensagens.VEICULO_JA_CADASTRADO
     
     if not validar_placa(placa):
@@ -81,35 +90,41 @@ def cadastrar_veiculo(veiculos, placa, cpf, modelo, nome, bloco, apartamento):
     # Determinar tipo baseado no modelo
     tipo = "morador" if modelo else "visitante"
     
-    # Adicionar veículo
-    veiculos.append({
-        "placa": placa,
-        "cpf": cpf,
-        "modelo": modelo,
-        "tipo": tipo,
-        "nome": nome,
-        "bloco": bloco,
-        "apartamento": apartamento
-    })
+    # Criar e salvar veículo
+    veiculo = Veiculo(
+        placa=placa,
+        cpf=cpf,
+        modelo=modelo,
+        tipo=tipo,
+        nome=nome,
+        bloco=bloco,
+        apartamento=apartamento
+    )
+    repo.create(veiculo)
     
     return active_config.Mensagens.VEICULO_CADASTRADO.format(placa=placa, tipo=tipo)
 
 # === Listar veículos cadastrados ===
-def listar_veiculos_cadastrados(veiculos):
+def listar_veiculos_cadastrados(db: Session) -> str:
     """Lista todos os veículos cadastrados no sistema"""
+    repo = VeiculoRepository(db)
+    veiculos = repo.get_all()
+    
     if not veiculos:
         return active_config.Mensagens.NENHUM_VEICULO_CADASTRADO
     
     linhas = ["📄 VEÍCULOS CADASTRADOS:"]
     for v in veiculos:
         linhas.append(
-            f"🔹 Placa: {v['placa']} | Nome: {v['nome']} | Tipo: {v['tipo'].capitalize()} | "
-            f"CPF: {v['cpf']} | Modelo: {v.get('modelo', 'N/A')} | "
-            f"Bloco: {v['bloco']} | Apto: {v['apartamento']}"
+            f"🔹 Placa: {v.placa} | Nome: {v.nome} | Tipo: {v.tipo.capitalize()} | "
+            f"CPF: {v.cpf} | Modelo: {v.modelo or 'N/A'} | "
+            f"Bloco: {v.bloco} | Apto: {v.apartamento}"
         )
     return "\n".join(linhas)
 
 # === Buscar veículo por placa ===
-def buscar_veiculo_por_placa(veiculos, placa):
+def buscar_veiculo_por_placa(db: Session, placa: str) -> Veiculo:
+    """Busca um veículo pela placa"""
+    repo = VeiculoRepository(db)
     placa_normalizada = normalizar_placa(placa)
-    return next((v for v in veiculos if v['placa'] == placa_normalizada), None) 
+    return repo.get_by_placa(placa_normalizada)

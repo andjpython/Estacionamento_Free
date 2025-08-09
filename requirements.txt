@@ -2,6 +2,10 @@
 Flask==3.0.0
 Flask-CORS==4.0.0
 pytz==2024.1
+SQLAlchemy==2.0.27
+psycopg2-binary==2.9.9
+alembic==1.13.1
+python-dotenv==1.0.1
 
 # === Dependências condicionais ===
 backports.zoneinfo; python_version<"3.9"
@@ -11,4 +15,3 @@ backports.zoneinfo; python_version<"3.9"
 # pytest-cov==4.1.0
 # black==23.12.1
 # flake8==7.0.0
-

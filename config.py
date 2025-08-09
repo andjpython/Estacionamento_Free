@@ -3,18 +3,21 @@ Configurações centralizadas do Sistema de Estacionamento Rotativo
 """
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Carrega variáveis de ambiente do arquivo .env
+load_dotenv()
 
 # === CONFIGURAÇÕES GERAIS ===
 class Config:
     # Diretórios
     BASE_DIR = Path(__file__).parent
-    DADOS_DIR = BASE_DIR / "dados"
     
-    # Arquivos de dados
-    VEICULOS_PATH = DADOS_DIR / "veiculos.json"
-    VAGAS_PATH = DADOS_DIR / "vagas.json"
-    HISTORICO_PATH = DADOS_DIR / "historico.json"
-    FUNCIONARIOS_PATH = DADOS_DIR / "funcionarios.json"
+    # === BANCO DE DADOS ===
+    DATABASE_URL = os.environ.get(
+        "DATABASE_URL",
+        "postgresql+psycopg2://usuario:senha@localhost:5432/estacionamento"
+    )
     
     # === REGRAS DE NEGÓCIO ===
     # Limite de tempo em horas (3 dias)
@@ -70,6 +73,7 @@ class Config:
         SENHA_INCORRETA = "❌ Acesso negado. Senha do supervisor incorreta!"
         DADOS_NAO_FORNECIDOS = "❌ Dados não fornecidos!"
         ERRO_INTERNO = "❌ Erro interno do servidor!"
+        ERRO_BANCO = "❌ Erro ao acessar o banco de dados: {mensagem}"
         
         # Informativos
         NENHUM_VEICULO_CADASTRADO = "📭 Nenhum veículo cadastrado."
@@ -94,4 +98,4 @@ config_name = os.environ.get('FLASK_ENV', 'development')
 if config_name == 'production':
     active_config = ProductionConfig()
 else:
-    active_config = DevelopmentConfig() 
+    active_config = DevelopmentConfig()
