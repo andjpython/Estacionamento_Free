@@ -3,7 +3,8 @@
 // Função para fazer login do funcionário
 async function loginFuncionario(matricula) {
   try {
-    const response = await fetch('/login-funcionario', {
+    const base = window.location.origin;
+    const response = await fetch(`${base}/login-funcionario`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

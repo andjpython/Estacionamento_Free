@@ -11,8 +11,8 @@ from utils.rate_limiter import limiter
 import os
 from db import SessionLocal, init_db
 from repositories import VagaRepository, VeiculoRepository
-from routes.supervisor_routes import supervisor_bp
-from routes.funcionarios_routes import funcionarios_bp
+from routes.supervisor_routes import supervisor_bp, login_supervisor as login_supervisor_view
+from routes.funcionarios_routes import funcionarios_bp, login_funcionario as login_funcionario_view
 from routes.veiculos_routes import veiculos_bp
 from utils.csrf import init_csrf
 
@@ -42,6 +42,20 @@ init_csrf(app)
 app.register_blueprint(supervisor_bp)
 app.register_blueprint(funcionarios_bp)
 app.register_blueprint(veiculos_bp)
+
+# Rotas diretas de fallback para evitar problemas de blueprint em alguns ambientes
+app.add_url_rule(
+    '/login-funcionario',
+    view_func=login_funcionario_view,
+    methods=['POST'],
+    endpoint='login_funcionario_fallback'
+)
+app.add_url_rule(
+    '/login-supervisor',
+    view_func=login_supervisor_view,
+    methods=['POST'],
+    endpoint='login_supervisor_fallback'
+)
 
 # ---------------------- ROTAS PRINCIPAIS ----------------------
 

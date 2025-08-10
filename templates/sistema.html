@@ -636,7 +636,7 @@
       e.preventDefault();
       const senha = document.getElementById('senhaSupervisor').value;
       
-      const resultado = await fazerRequisicao('/login-supervisor', { senha }, 'POST');
+      const resultado = await fazerRequisicao(window.location.origin + '/login-supervisor', { senha }, 'POST');
       
       if (resultado.sucesso) {
         mostrarResultado('resultadoSupervisor', resultado.dados.mensagem, 'sucesso');

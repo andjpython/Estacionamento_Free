@@ -42,7 +42,8 @@ if (loginSupervisorForm) {
     e.preventDefault();
     const senha = document.getElementById('senhaSupervisor').value;
     try {
-      const res = await fetch('/login-supervisor', {
+      const base = window.location.origin;
+      const res = await fetch(`${base}/login-supervisor`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
