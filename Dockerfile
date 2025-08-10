@@ -33,9 +33,9 @@ USER appuser
 # Expor porta
 EXPOSE 10000
 
-# Health check
+# Health check (usa python -m para garantir env correto)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python health.py
+    CMD python -m health
 
 # Comando para executar a aplicação
 CMD ["gunicorn", "-c", "gunicorn_config.py", "app:app"]

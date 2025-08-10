@@ -4,6 +4,8 @@ from datetime import datetime
 
 from flask import Flask, request, jsonify, render_template, redirect, url_for
 from flask_cors import CORS
+from utils.logger import system_logger
+from utils.metrics import metrics_collector, MetricsMiddleware
 
 from db import SessionLocal
 from repositories import VagaRepository, VeiculoRepository
@@ -14,6 +16,9 @@ from utils.csrf import init_csrf
 
 app = Flask(__name__)
 CORS(app)
+
+# Middleware de métricas
+app.wsgi_app = MetricsMiddleware(app.wsgi_app, metrics_collector)  # type: ignore
 
 # Configurar chave secreta para sessão e CSRF
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'seu_segredo_super_secreto_aqui')
@@ -157,11 +162,13 @@ def listar_vagas_completas():
         if not vagas_completas:
             return jsonify({'mensagem': 'Nenhuma vaga encontrada ou erro ao processar todas as vagas'}), 404
             
-        return jsonify({
+        response = {
             'status': 'success',
             'total_vagas': len(vagas_completas),
             'vagas': vagas_completas
-        })
+        }
+        system_logger.info("Listagem de vagas completa", extra={"extra_data": {"total_vagas": len(vagas_completas)}})
+        return jsonify(response)
         
     except Exception as e:
         print(f"Erro ao carregar vagas completas: {str(e)}")
@@ -174,6 +181,11 @@ def listar_vagas_completas():
     finally:
         if db:
             db.close()
+
+# ---------------------- MÉTRICAS ----------------------
+@app.route('/metrics', methods=['GET'])
+def metrics():
+    return jsonify(metrics_collector.get_metrics_summary())
 
 # ---------------------- EXECUÇÃO ----------------------
 if __name__ == '__main__':

@@ -1,6 +1,13 @@
 # Configuração do Gunicorn para o Render
-bind = "0.0.0.0:10000"
-workers = 2
+# Render fornece a porta via variável de ambiente PORT
+import os
+port = os.environ.get("PORT", "10000")
+bind = f"0.0.0.0:{port}"
+
+# Ajusta workers dinamicamente quando disponível (Render/Heroku)
+import multiprocessing
+web_concurrency = os.getenv("WEB_CONCURRENCY")
+workers = int(web_concurrency) if web_concurrency else max(2, multiprocessing.cpu_count())
 worker_class = "sync"
 threads = 2
 timeout = 120

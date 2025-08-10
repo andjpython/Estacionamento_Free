@@ -9,9 +9,12 @@ from config import active_config
 # Obter URL do banco de dados
 database_url = os.getenv('DATABASE_URL', str(active_config.DATABASE_URL))
 
-# Corrigir URL do PostgreSQL se necessário (Render usa postgres://, SQLAlchemy precisa de postgresql://)
+# Normalizar esquemas compatíveis
 if database_url.startswith('postgres://'):
-    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    # Render/Heroku usam postgres://; SQLAlchemy aceita postgresql+psycopg
+    database_url = database_url.replace('postgres://', 'postgresql+psycopg://', 1)
+elif database_url.startswith('postgresql://') and '+psycopg' not in database_url:
+    database_url = database_url.replace('postgresql://', 'postgresql+psycopg://', 1)
 
 # Configurações do engine otimizadas para SQLAlchemy 2
 engine_config = {

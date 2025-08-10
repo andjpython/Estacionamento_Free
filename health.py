@@ -7,6 +7,7 @@ Verifica se a aplicação está funcionando corretamente
 import os
 import sys
 from pathlib import Path
+from sqlalchemy import text
 
 # Adicionar o diretório raiz ao path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -16,7 +17,8 @@ try:
     
     # Testar conexão com o banco
     with engine.connect() as conn:
-        result = conn.execute("SELECT 1")
+        # SQLAlchemy 2.0 requer TextClause ou exec_driver_sql
+        result = conn.execute(text("SELECT 1"))
         if result.scalar() == 1:
             print("✅ Health check: OK")
             sys.exit(0)

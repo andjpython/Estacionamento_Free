@@ -16,9 +16,10 @@ class Config:
     # === BANCO DE DADOS ===
     # URL do banco. Para PostgreSQL, use:
     # postgresql+psycopg2://USUARIO:SENHA@HOST:PORTA/NOME_BANCO
+    # Driver padrão atualizado para psycopg (v3)
     DATABASE_URL = os.environ.get(
         "DATABASE_URL",
-        "postgresql+psycopg2://postgres:postgres@localhost:5432/estacionamento_rotativo"
+        "postgresql+psycopg://postgres:postgres@localhost:5432/estacionamento_rotativo"
     )
     
     # === REGRAS DE NEGÓCIO ===
