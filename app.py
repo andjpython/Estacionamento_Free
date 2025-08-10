@@ -45,42 +45,135 @@ def supervisor_sistema():
 
 @app.route('/vagas-completas', methods=['GET'])
 def listar_vagas_completas():
+    """Lista todas as vagas com informações completas"""
+    db = None
     try:
         db = SessionLocal()
+        vaga_repo = VagaRepository(db)
+        
+        # Buscar vagas
         try:
-            vaga_repo = VagaRepository(db)
             vagas = vaga_repo.get_vagas_completas()
-            
-            # Converter para dicionário e adicionar informações completas
-            vagas_completas = []
-            for vaga in vagas:
+        except Exception as e:
+            print(f"Erro ao buscar vagas: {str(e)}")
+            return jsonify({'mensagem': 'Erro ao buscar vagas no banco de dados'}), 500
+        
+        # Converter para dicionário
+        vagas_completas = []
+        for vaga in vagas:
+            try:
+                # Informações básicas da vaga
+                # Converter valores das colunas SQLAlchemy
+                try:
+                    numero = vaga.numero.scalar() if hasattr(vaga.numero, 'scalar') else vaga.numero
+                    tipo = vaga.tipo.scalar() if hasattr(vaga.tipo, 'scalar') else vaga.tipo
+                    ocupada = vaga.ocupada.scalar() if hasattr(vaga.ocupada, 'scalar') else vaga.ocupada
+                    entrada = vaga.entrada.scalar() if hasattr(vaga.entrada, 'scalar') else vaga.entrada
+                except Exception as e:
+                    print(f"Erro ao converter valores da vaga: {str(e)}")
+                    numero = None
+                    tipo = 'indefinido'
+                    ocupada = False
+                    entrada = None
+
+                # Converter e validar valores
+                tipo_str = str(tipo) if tipo is not None else 'indefinido'
+                ocupada_bool = False
+                if isinstance(ocupada, bool):
+                    ocupada_bool = ocupada
+                elif hasattr(ocupada, 'scalar'):
+                    try:
+                        ocupada_bool = bool(ocupada.scalar())
+                    except:
+                        ocupada_bool = False
+
+                entrada_str = None
+                if entrada is not None:
+                    if hasattr(entrada, 'isoformat'):
+                        entrada_str = entrada.isoformat()
+                    elif hasattr(entrada, 'scalar'):
+                        try:
+                            entrada_val = entrada.scalar()
+                            if entrada_val and hasattr(entrada_val, 'isoformat'):
+                                entrada_str = entrada_val.isoformat()
+                        except:
+                            entrada_str = None
+
                 vaga_info = {
-                    'numero': vaga.numero,
-                    'tipo': vaga.tipo,
-                    'ocupada': vaga.ocupada,
-                    'entrada': vaga.entrada.isoformat() if vaga.entrada else None
+                    'numero': numero,
+                    'tipo': tipo_str,
+                    'ocupada': ocupada_bool,
+                    'entrada': entrada_str,
+                    'veiculo': None
                 }
                 
-                if vaga.ocupada and vaga.veiculo:
-                    vaga_info['veiculo'] = vaga.veiculo.placa
-                    vaga_info['proprietario'] = vaga.veiculo.nome
-                    vaga_info['cpf'] = vaga.veiculo.cpf
-                    vaga_info['modelo'] = vaga.veiculo.modelo
-                    vaga_info['bloco'] = vaga.veiculo.bloco
-                    vaga_info['apartamento'] = vaga.veiculo.apartamento
-                else:
-                    vaga_info['veiculo'] = None
+                # Adicionar informações do veículo se ocupada
+                if ocupada_bool and vaga.veiculo:
+                    # Converter valores das colunas do veículo
+                    def get_value(attr):
+                        """Extrai valor de um atributo SQLAlchemy ou valor normal"""
+                        if attr is None:
+                            return None
+                        try:
+                            if hasattr(attr, 'scalar'):
+                                return attr.scalar()
+                            return attr
+                        except:
+                            return None
+
+                    try:
+                        veiculo_info = {
+                            'placa': get_value(vaga.veiculo.placa),
+                            'proprietario': get_value(vaga.veiculo.nome),
+                            'cpf': get_value(vaga.veiculo.cpf),
+                            'modelo': get_value(vaga.veiculo.modelo),
+                            'bloco': get_value(vaga.veiculo.bloco),
+                            'apartamento': get_value(vaga.veiculo.apartamento)
+                        }
+                        
+                        # Converter valores para string se não forem None
+                        vaga_info['veiculo'] = {
+                            k: str(v) if v is not None else None
+                            for k, v in veiculo_info.items()
+                        }
+                    except Exception as e:
+                        print(f"Erro ao converter valores do veículo: {str(e)}")
+                        vaga_info['veiculo'] = {
+                            'placa': None,
+                            'proprietario': None,
+                            'cpf': None,
+                            'modelo': None,
+                            'bloco': None,
+                            'apartamento': None
+                        }
                 
                 vagas_completas.append(vaga_info)
+                
+            except Exception as e:
+                print(f"Erro ao processar vaga {vaga.numero if vaga else 'desconhecida'}: {str(e)}")
+                continue  # Pular vaga com erro e continuar
+        
+        # Verificar se alguma vaga foi processada
+        if not vagas_completas:
+            return jsonify({'mensagem': 'Nenhuma vaga encontrada ou erro ao processar todas as vagas'}), 404
             
-            return jsonify(vagas_completas)
-            
-        finally:
-            db.close()
-            
+        return jsonify({
+            'status': 'success',
+            'total_vagas': len(vagas_completas),
+            'vagas': vagas_completas
+        })
+        
     except Exception as e:
         print(f"Erro ao carregar vagas completas: {str(e)}")
-        return jsonify({'mensagem': f'Erro ao carregar vagas completas: {str(e)}'}), 500
+        return jsonify({
+            'status': 'error',
+            'mensagem': 'Erro interno ao processar vagas',
+            'erro': str(e)
+        }), 500
+        
+    finally:
+        if db:
+            db.close()
 
 # ---------------------- EXECUÇÃO ----------------------
 if __name__ == '__main__':

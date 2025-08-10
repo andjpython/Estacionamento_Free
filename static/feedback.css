@@ -1,0 +1,68 @@
+/* === Feedback Visual === */
+.loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 15px 25px;
+  border-radius: 8px;
+  color: white;
+  font-weight: 500;
+  z-index: 9999;
+  animation: slideIn 0.3s ease-out;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.toast-error {
+  background: linear-gradient(135deg, #ff4b4b 0%, #ff0000 100%);
+}
+
+.toast-success {
+  background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Validação de formulários */
+.invalid {
+  border-color: #ff4b4b !important;
+  box-shadow: 0 0 0 2px rgba(255,75,75,0.2) !important;
+}
+
+.invalid:focus {
+  border-color: #ff4b4b !important;
+  box-shadow: 0 0 0 3px rgba(255,75,75,0.3) !important;
+}
+
+/* Acessibilidade - Feedback de foco */
+.focused {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(66,153,225,0.6) !important;
+}
+

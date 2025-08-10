@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>Estacionamento Rotativo - Recantos das Flores I</title>
   <link rel="icon" type="image/png" href="/static/imagens/icon.png">
   <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/feedback.css">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Bahnschrift:wght@700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -344,6 +346,11 @@
         </div>
     </div>
   </footer>
+  <script src="/static/utils.js"></script>
+  <script src="/static/auth.js"></script>
+  <script src="/static/modal.js"></script>
+  <script src="/static/login.js"></script>
+  <script src="/static/animations.js"></script>
   <script src="/static/script.js"></script>
 </body>
 </html>

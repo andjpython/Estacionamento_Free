@@ -37,7 +37,7 @@ pip install -r requirements.txt
    
    b. Edite o `.env` com suas configurações:
    ```
-   DATABASE_URL=postgresql+psycopg2://usuario:senha@localhost:5432/estacionamento
+   DATABASE_URL=postgresql+psycopg://usuario:senha@localhost:5432/estacionamento
    FLASK_ENV=development
    SENHA_SUPERVISOR=sua_senha_aqui
    ```

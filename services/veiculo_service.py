@@ -88,8 +88,10 @@ def cadastrar_veiculo(db: Session, placa: str, cpf: str, modelo: str, nome: str,
     if not nome:
         return active_config.Mensagens.NOME_OBRIGATORIO
     
-    # Determinar tipo baseado no modelo
+    # Determinar e validar tipo
     tipo = "morador" if modelo else "visitante"
+    if tipo == "morador" and not modelo:
+        return "❌ Modelo do veículo é obrigatório para moradores."
     
     # Criar e salvar veículo
     veiculo = Veiculo(
@@ -106,11 +108,19 @@ def cadastrar_veiculo(db: Session, placa: str, cpf: str, modelo: str, nome: str,
     return active_config.Mensagens.VEICULO_CADASTRADO.format(placa=placa, tipo=tipo)
 
 # === Listar veículos cadastrados ===
-def listar_veiculos_cadastrados(db: Session) -> List[Veiculo]:
-    """Lista todos os veículos cadastrados no sistema"""
+def listar_veiculos_cadastrados(db: Session) -> str:
+    """Lista todos os veículos cadastrados no sistema, ordenados por placa"""
     repo = VeiculoRepository(db)
-    veiculos = repo.get_all()
-    return veiculos
+    veiculos = sorted(repo.get_all(), key=lambda v: v.placa)
+    
+    if not veiculos:
+        return "📭 Nenhum veículo cadastrado."
+        
+    return "\n".join([
+        f"🚗 {v.placa} - {v.nome} ({v.tipo})" +
+        (f" - Bloco {v.bloco} Apto {v.apartamento}" if v.tipo == "morador" else "")
+        for v in veiculos
+    ])
 
 # === Buscar veículo por placa ===
 def buscar_veiculo_por_placa(db: Session, placa: str) -> Veiculo:

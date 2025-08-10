@@ -30,6 +30,12 @@ document.addEventListener('keydown', function(event) {
 });
 
 // === Login Supervisor ===
+// Obter token CSRF da meta tag (se existir) e padronizar em window.csrfToken
+const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+const __csrfFromMeta = csrfMeta ? csrfMeta.getAttribute('content') : null;
+if (!window.csrfToken) {
+  window.csrfToken = __csrfFromMeta;
+}
 const loginSupervisorForm = document.getElementById('loginSupervisorForm');
 if (loginSupervisorForm) {
   loginSupervisorForm.addEventListener('submit', async function (e) {
@@ -38,7 +44,10 @@ if (loginSupervisorForm) {
     try {
       const res = await fetch('/login-supervisor', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(window.csrfToken ? { 'X-CSRFToken': window.csrfToken } : {})
+        },
         body: JSON.stringify({ senha })
       });
       const dados = await res.json();
@@ -62,82 +71,77 @@ if (loginSupervisorForm) {
 }
 
 // === Login Funcionário ===
-const loginFuncionarioForm = document.getElementById('loginFuncionarioForm');
-if (loginFuncionarioForm) {
-  loginFuncionarioForm.addEventListener('submit', async function (e) {
-    e.preventDefault();
-    const matricula = document.getElementById('matriculaFuncionario').value.trim();
-    try {
-      const res = await fetch('/login-funcionario', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ matricula })
-      });
-      const dados = await res.json();
-      alert(dados.mensagem);
-      if (res.status === 200) {
-        localStorage.setItem('matriculaLogada', matricula);
-        atualizarFuncionariosLogados();
-        verificarAcessoSistema(); // Verificar acesso ao sistema após login
-        fecharModalLogin(); // Fecha o modal após login bem-sucedido
-        // Limpar campo de matrícula
-        document.getElementById('matriculaFuncionario').value = '';
-      } else {
-        // Limpar campo após erro
-        document.getElementById('matriculaFuncionario').value = '';
-      }
-    } catch (err) {
-      alert('Erro de conexão com o servidor.');
-      // Limpar campo após erro
-      document.getElementById('matriculaFuncionario').value = '';
-    }
-  });
-}
+// Movido para login.js
 
 // === Logout Funcionário ===
 async function logoutFuncionario() {
   const matricula = localStorage.getItem('matriculaLogada');
   if (!matricula) {
-    alert('Nenhum funcionário logado.');
+    window.utils.mostrarErro('Nenhum funcionário logado');
     return;
   }
   
+  // Mostrar loading no botão de logout
+  const btnLogout = document.querySelector('.btn-logout');
+  if (btnLogout) {
+    window.utils.mostrarLoading(btnLogout);
+  }
+  
   try {
-    const res = await fetch('/logout-funcionario', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ matricula })
-    });
-    const dados = await res.json();
-    alert(dados.mensagem);
-    if (res.status === 200) {
+    const { sucesso, dados } = await window.auth.fazerRequisicaoAutenticada(
+      '/logout-funcionario',
+      { matricula },
+      'POST'
+    );
+    
+    if (sucesso) {
       localStorage.removeItem('matriculaLogada');
       atualizarFuncionariosLogados();
-      verificarAcessoSistema(); // Verificar acesso ao sistema após logout
+      verificarAcessoSistema();
+      window.utils.mostrarErro(dados.mensagem, 'success');
+    } else {
+      window.utils.mostrarErro(dados.mensagem);
     }
   } catch (err) {
-    alert('Erro de conexão com o servidor.');
+    window.utils.mostrarErro('Erro de conexão com o servidor');
+  } finally {
+    if (btnLogout) {
+      window.utils.ocultarLoading(btnLogout);
+    }
   }
 }
 
 // === Logout Supervisor ===
 async function logoutSupervisor() {
+  // Mostrar loading no botão de logout
+  const btnLogout = document.querySelector('.btn-logout-supervisor');
+  if (btnLogout) {
+    window.utils.mostrarLoading(btnLogout);
+  }
+  
   try {
-    const res = await fetch('/logout-supervisor', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
-    });
-    const dados = await res.json();
-    alert(dados.mensagem);
-    if (res.status === 200) {
-      marcarSupervisorDeslogado(); // Marcar supervisor como deslogado
+    const { sucesso, dados } = await window.auth.fazerRequisicaoAutenticada(
+      '/logout-supervisor',
+      null,
+      'POST'
+    );
+    
+    if (sucesso) {
+      marcarSupervisorDeslogado();
+      window.utils.mostrarErro(dados.mensagem, 'success');
       // Redirecionar para página inicial se estiver na área do supervisor
       if (window.location.pathname.includes('supervisor')) {
         window.location.href = '/';
       }
+    } else {
+      window.utils.mostrarErro(dados.mensagem);
     }
   } catch (err) {
-    alert('Erro de conexão com o servidor.');
+    window.utils.mostrarErro('Erro de conexão com o servidor');
+  } finally {
+    if (btnLogout) {
+      window.utils.ocultarLoading(btnLogout);
+    }
   }
 }
 
@@ -322,26 +326,61 @@ atualizarHorarioBrasilia();
 
 // === Imagens Flutuantes ===
 (function() {
+  const container = document.getElementById('imagens-flutuantes');
+  if (!container) {
+    return; // Não há container nesta página (ex.: /sistema)
+  }
+
   const imagens = [
-    'tenda.jpg', 'tenda1.jpg', 'folha.png',
+    'tenda.jpg', 'tenda1.jpg', 'folha.png', 'logo_recanto_das_flores.png',
+    'entrada.avif', 'entradas.jpg', 'predio.jpg', 'jardim3.webp'
   ];
   const caminhos = imagens.map(img => `/static/imagens/${img}`);
   const animacoes = [
     'flutuar-horizontal', 'flutuar-vertical', 'flutuar-diagonal1', 'flutuar-diagonal2'
   ];
-  const container = document.getElementById('imagens-flutuantes');
+  // container já obtido acima
+  // Pré-carregar imagens
+  const imagensPreCarregadas = new Map();
+  
+  function preCarregarImagem(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = src;
+    });
+  }
+  
+  // Pré-carregar todas as imagens
+  Promise.all(caminhos.map(src => 
+    preCarregarImagem(src)
+      .then(img => imagensPreCarregadas.set(src, img))
+      .catch(err => console.warn(`Erro ao carregar imagem ${src}:`, err))
+  ));
+  
   function criarImagemFlutuante() {
+    const src = caminhos[Math.floor(Math.random() * caminhos.length)];
     const img = document.createElement('img');
-    img.src = caminhos[Math.floor(Math.random() * caminhos.length)];
+    
+    // Usar imagem pré-carregada se disponível
+    if (imagensPreCarregadas.has(src)) {
+      const preCarregada = imagensPreCarregadas.get(src);
+      img.src = preCarregada.src;
+    } else {
+      img.src = src;
+    }
+    
     img.className = 'imagem-flutuante';
+    img.loading = 'lazy'; // Carregamento lazy para imagens fora da viewport
     
     // Definir tamanho base maior para mostrar a imagem completa
-    const size = Math.random() * 150 + 80; // Aumentado de 120+60 para 150+80
+    const size = Math.random() * 150 + 80;
     img.style.width = `${size}px`;
     
     // Manter proporção original da imagem sem deformação
-    img.style.height = 'auto'; // Auto mantém a proporção original
-    img.style.objectFit = 'contain'; // Garante que a imagem completa seja visível
+    img.style.height = 'auto';
+    img.style.objectFit = 'contain';
     
     img.style.top = `${Math.random() * 70}vh`; // Reduzido de 80 para 70 para evitar cortes
     img.style.left = `${Math.random() * 70}vw`; // Reduzido de 80 para 70 para evitar cortes
@@ -826,7 +865,12 @@ document.addEventListener('visibilitychange', function() {
   }
 });
 
-// Expor funções globalmente para debug/controle manual
+// Expor funções globalmente
+window.atualizarFuncionariosLogados = atualizarFuncionariosLogados;
+window.verificarAcessoSistema = verificarAcessoSistema;
+window.fecharModalLogin = fecharModalLogin;
+
+// Expor funções para debug/controle manual
 window.notificadorDebug = {
   iniciar: iniciarNotificadorVeiculosExcedidos,
   parar: pararNotificadorVeiculosExcedidos,

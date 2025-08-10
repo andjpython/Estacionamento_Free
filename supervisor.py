@@ -1,25 +1,22 @@
-import json
-from datetime import datetime
-from zoneinfo import ZoneInfo
+"""
+Interface do supervisor para o Sistema de Estacionamento Rotativo
+"""
 from getpass import getpass
+from sqlalchemy.orm import Session
 from services.historico_service import ver_historico
 from services.veiculo_service import listar_veiculos_cadastrados
-from services.funcionario_service import listar_funcionarios, cadastrar_funcionario
+from services.funcionario_service import (
+    listar_funcionarios, cadastrar_funcionario,
+    remover_funcionario as service_remover_funcionario
+)
+from config import active_config
 
-def remover_funcionario(funcionarios, matricula):
-    func = next((f for f in funcionarios if f["matricula"] == matricula), None)
-    if not func:
-        return "❌ Funcionário não encontrado."
-    funcionarios.remove(func)
-    return f"🗑️ Funcionário {func['nome']} removido."
-
-def menu_supervisor(carregar_dados, salvar_dados, cadastrar_funcionario, listar_funcionarios, listar_veiculos_cadastrados):
+def menu_supervisor(db: Session):
+    """Menu do supervisor com acesso a funções administrativas"""
     senha = getpass("Digite a senha de supervisor: ")
-    if senha != "290479":
+    if senha != active_config.SENHA_SUPERVISOR:
         print("❌ Senha incorreta!")
         return
-
-    veiculos, vagas, historico, funcionarios = carregar_dados()
 
     while True:
         print("\n==== MENU DO SUPERVISOR ====")
@@ -34,20 +31,24 @@ def menu_supervisor(carregar_dados, salvar_dados, cadastrar_funcionario, listar_
         if opcao == "1":
             nome = input("Nome do funcionário: ").strip()
             matricula = input("Matrícula (4 dígitos): ").strip()
-            print(cadastrar_funcionario(funcionarios, nome, matricula))
+            resultado = cadastrar_funcionario(db, nome, matricula)
+            print(resultado)
+            if "✅" in resultado:
+                db.commit()
         elif opcao == "2":
-            print(listar_funcionarios(funcionarios))
+            print(listar_funcionarios(db))
         elif opcao == "3":
-            print(ver_historico(historico))
+            print(ver_historico(db))
         elif opcao == "4":
             matricula = input("Matrícula do funcionário a remover: ").strip()
-            print(remover_funcionario(funcionarios, matricula))
+            resultado = service_remover_funcionario(db, matricula)
+            print(resultado)
+            if "🗑️" in resultado:
+                db.commit()
         elif opcao == "5":
-            print(listar_veiculos_cadastrados(veiculos))
+            print(listar_veiculos_cadastrados(db))
         elif opcao == "6":
             print("🔙 Retornando ao menu principal...")
             break
         else:
             print("❌ Opção inválida!")
-
-        salvar_dados(veiculos, vagas, historico, funcionarios)

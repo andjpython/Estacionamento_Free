@@ -14,9 +14,11 @@ class Config:
     BASE_DIR = Path(__file__).parent
     
     # === BANCO DE DADOS ===
+    # URL do banco. Para PostgreSQL, use:
+    # postgresql+psycopg://USUARIO:SENHA@HOST:PORTA/NOME_BANCO
     DATABASE_URL = os.environ.get(
         "DATABASE_URL",
-        "sqlite:///./estacionamento.db"
+        "postgresql+psycopg://postgres:postgres@localhost:5432/estacionamento"
     )
     
     # === REGRAS DE NEGÓCIO ===

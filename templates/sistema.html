@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>Sistema de Estacionamento Rotativo - Recanto das Flores I</title>
   <link rel="icon" type="image/png" href="/static/imagens/icon.png">
   <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/feedback.css">
   <style>
     /* Estilos específicos para o sistema */
     .sistema-container {
@@ -403,7 +405,7 @@
       
       <!-- Botão Voltar -->
       <div style="margin-top: 20px; text-align: center;">
-        <button onclick="voltarPaginaAnterior()" class="btn-voltar">← Voltar</button>
+        <button onclick="window.location.href='/'" class="btn-voltar">← Voltar</button>
       </div>
     </div>
 
@@ -451,7 +453,7 @@
       
       <!-- Botão Voltar -->
       <div style="margin-top: 20px; text-align: center;">
-        <button onclick="voltarPaginaAnterior()" class="btn-voltar">← Voltar</button>
+        <button onclick="voltarPaginaInicial()" class="btn-voltar">← Voltar</button>
       </div>
     </div>
 
@@ -494,7 +496,7 @@
       
       <!-- Botão Voltar -->
       <div style="margin-top: 20px; text-align: center;">
-        <button onclick="voltarPaginaAnterior()" class="btn-voltar">← Voltar</button>
+        <button onclick="voltarPaginaInicial()" class="btn-voltar">← Voltar</button>
       </div>
     </div>
 
@@ -535,12 +537,21 @@
       
       <!-- Botão Voltar -->
       <div style="margin-top: 20px; text-align: center;">
-        <button onclick="voltarPaginaAnterior()" class="btn-voltar">← Voltar</button>
+        <button onclick="voltarPaginaInicial()" class="btn-voltar">← Voltar</button>
       </div>
     </div>
   </div>
 
   <script>
+    // Garantir que o token CSRF esteja disponível globalmente antes de handlers
+    (function ensureCsrf() {
+      try {
+        var meta = document.querySelector('meta[name="csrf-token"]');
+        if (meta) {
+          window.csrfToken = window.csrfToken || meta.getAttribute('content');
+        }
+      } catch (e) {}
+    })();
     // Função para abrir seções
     function abrirSecao(id) {
       try {
@@ -596,12 +607,14 @@
     }
 
     // Função para fazer requisições AJAX
+    const csrfToken = (window.csrfToken || (document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : null));
     async function fazerRequisicao(url, dados = null, metodo = 'GET') {
       try {
         const opcoes = {
           method: metodo,
           headers: {
             'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
           }
         };
 
@@ -790,7 +803,7 @@
       // Parar todos os timers existentes antes de carregar novos
       pararTodosTimers();
       
-      const resultado = await fazerRequisicao('/vagas-completas');
+      const resultado = await fazerRequisicao('/vagas');
       
       document.getElementById('loadingVagas').classList.add('hidden');
       
@@ -944,6 +957,27 @@
     window.addEventListener('beforeunload', function() {
       pararAtualizacaoAutomatica();
     });
+
+    // Função para voltar à página inicial
+    function voltarPaginaInicial() {
+      // Esconde todas as seções
+      document.querySelectorAll('.secao').forEach(sec => {
+        sec.classList.add('hidden');
+      });
+      
+      // Mostra o menu principal
+      document.querySelector('.menu-funcoes').style.display = 'grid';
+      
+      // Limpa resultados anteriores
+      document.querySelectorAll('.resultado').forEach(res => {
+        res.classList.add('hidden');
+      });
+      
+      // Limpa formulários
+      document.querySelectorAll('form').forEach(form => {
+        form.reset();
+      });
+    }
   </script>
   
   <!-- Carregar script.js para funcionalidades adicionais -->

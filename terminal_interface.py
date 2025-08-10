@@ -1,9 +1,12 @@
 """
 Interface de terminal para o Sistema de Estacionamento Rotativo
 """
+from sqlalchemy.orm import Session
+from utils.db_context import get_db_session
+from utils.validators import validar_placa, validar_matricula, validar_cpf
 from estacionamento import (
-    carregar_dados, salvar_dados, estacionar_veiculo, liberar_vaga,
-    remover_veiculo_por_cpf, registrar_entrada, registrar_saida
+    estacionar_veiculo, liberar_vaga, remover_veiculo_por_cpf,
+    registrar_entrada, registrar_saida
 )
 from services.veiculo_service import cadastrar_veiculo, listar_veiculos_cadastrados
 from services.funcionario_service import cadastrar_funcionario, listar_funcionarios  
@@ -33,148 +36,197 @@ def menu_principal():
         
         opcao = input("Escolha uma opção: ").strip()
         
-        try:
-            veiculos, vagas, historico, funcionarios = carregar_dados()
+        if opcao == "12":
+            print("🚪 Saindo... Até logo!")
+            break
             
-            if opcao == "0":
-                menu_supervisor_interface()
-            elif opcao == "1":
-                cadastrar_veiculo_interface(veiculos, vagas, historico, funcionarios)
-            elif opcao == "2":
-                estacionar_veiculo_interface(veiculos, vagas, historico, funcionarios)
-            elif opcao == "3":
-                liberar_vaga_interface(veiculos, vagas, historico, funcionarios)
-            elif opcao == "4":
-                print(ver_status_vagas(vagas))
-            elif opcao == "5":
-                excedidos = verificar_tempo_excedido(vagas)
-                if excedidos:
-                    print("⚠️ VEÍCULOS COM TEMPO EXCEDIDO:")
-                    for item in excedidos:
-                        print(f"Vaga {item['numero']} - {item['veiculo']} - {item['horas']}h")
+        try:
+            with get_db_session() as db:
+                if opcao == "0":
+                    menu_supervisor_interface(db)
+                elif opcao == "1":
+                    cadastrar_veiculo_interface(db)
+                elif opcao == "2":
+                    estacionar_veiculo_interface(db)
+                elif opcao == "3":
+                    liberar_vaga_interface(db)
+                elif opcao == "4":
+                    print(ver_status_vagas(db))
+                elif opcao == "5":
+                    excedidos = verificar_tempo_excedido(db)
+                    if excedidos:
+                        print("⚠️ VEÍCULOS COM TEMPO EXCEDIDO:")
+                        for item in excedidos:
+                            print(f"Vaga {item['numero']} - {item['veiculo']} - {item['horas']}h")
+                    else:
+                        print("✅ Nenhum veículo com tempo excedido.")
+                elif opcao == "6":
+                    remover_veiculo_interface(db)
+                elif opcao == "7":
+                    cadastrar_funcionario_interface(db)
+                elif opcao == "8":
+                    print(listar_funcionarios(db))
+                elif opcao == "9":
+                    login_funcionario_interface(db)
+                elif opcao == "10":
+                    logout_funcionario_interface(db)
+                elif opcao == "11":
+                    print(listar_veiculos_cadastrados(db))
                 else:
-                    print("✅ Nenhum veículo com tempo excedido.")
-            elif opcao == "6":
-                remover_veiculo_interface(veiculos, vagas, historico, funcionarios)
-            elif opcao == "7":
-                cadastrar_funcionario_interface(veiculos, vagas, historico, funcionarios)
-            elif opcao == "8":
-                print(listar_funcionarios(funcionarios))
-            elif opcao == "9":
-                login_funcionario_interface(veiculos, vagas, historico, funcionarios)
-            elif opcao == "10":
-                logout_funcionario_interface(veiculos, vagas, historico, funcionarios)
-            elif opcao == "11":
-                print(listar_veiculos_cadastrados(veiculos))
-            elif opcao == "12":
-                salvar_dados(veiculos, vagas, historico, funcionarios)
-                print("🚪 Saindo... Até logo!")
-                break
-            else:
-                print("❌ Opção inválida!")
-                
+                    print("❌ Opção inválida!")
+                    
         except Exception as e:
             logger.error(f"Erro no menu principal: {e}")
             print("❌ Erro interno do sistema!")
 
-def cadastrar_veiculo_interface(veiculos, vagas, historico, funcionarios):
+def cadastrar_veiculo_interface(db: Session):
     """Interface para cadastro de veículo"""
     print("\n=== CADASTRAR VEÍCULO ===")
-    placa = input("Placa: ").strip().upper()
-    cpf = input("CPF: ").strip()
+    
+    # Validar placa
+    while True:
+        placa = input("Placa: ").strip().upper()
+        valido, msg = validar_placa(placa)
+        if valido:
+            break
+        print(msg)
+    
+    # Validar CPF
+    while True:
+        cpf = input("CPF: ").strip()
+        valido, msg = validar_cpf(cpf)
+        if valido:
+            break
+        print(msg)
+    
     modelo = input("Modelo (deixe vazio se visitante): ").strip()
     nome = input("Nome: ").strip()
+    if not nome:
+        print("❌ Nome é obrigatório!")
+        return
+        
     bloco = input("Bloco: ").strip()
     apartamento = input("Apartamento: ").strip()
     
-    resultado = cadastrar_veiculo(veiculos, placa, cpf, modelo, nome, bloco, apartamento)
+    resultado = cadastrar_veiculo(db, placa, cpf, modelo, nome, bloco, apartamento)
     print(resultado)
-    
-    if "✅" in resultado:
-        salvar_dados(veiculos, vagas, historico, funcionarios)
 
-def estacionar_veiculo_interface(veiculos, vagas, historico, funcionarios):
+def estacionar_veiculo_interface(db: Session):
     """Interface para estacionar veículo"""
     print("\n=== ESTACIONAR VEÍCULO ===")
-    placa = input("Digite a placa do veículo: ").strip()
     
-    resultado = estacionar_veiculo(placa, veiculos, vagas, historico)
+    # Validar placa
+    while True:
+        placa = input("Digite a placa do veículo: ").strip().upper()
+        valido, msg = validar_placa(placa)
+        if valido:
+            break
+        print(msg)
+    
+    resultado = estacionar_veiculo(db, placa)
     print(resultado)
-    
-    if "✅" in resultado:
-        salvar_dados(veiculos, vagas, historico, funcionarios)
 
-def liberar_vaga_interface(veiculos, vagas, historico, funcionarios):
+def liberar_vaga_interface(db: Session):
     """Interface para liberar vaga"""
     print("\n=== REGISTRAR SAÍDA ===")
-    placa = input("Placa do veículo: ").strip()
-    matricula = input("Matrícula do funcionário: ").strip()
     
-    resultado = liberar_vaga(placa, matricula, veiculos, vagas, historico, funcionarios)
+    # Validar placa
+    while True:
+        placa = input("Placa do veículo: ").strip().upper()
+        valido, msg = validar_placa(placa)
+        if valido:
+            break
+        print(msg)
+    
+    # Validar matrícula
+    while True:
+        matricula = input("Matrícula do funcionário: ").strip()
+        valido, msg = validar_matricula(matricula)
+        if valido:
+            break
+        print(msg)
+    
+    resultado = liberar_vaga(db, placa, matricula)
     print(resultado)
-    
-    if "✅" in resultado:
-        salvar_dados(veiculos, vagas, historico, funcionarios)
 
-def remover_veiculo_interface(veiculos, vagas, historico, funcionarios):
+def remover_veiculo_interface(db: Session):
     """Interface para remoção de veículo por CPF"""
     print("\n=== REMOVER VEÍCULO POR CPF ===")
-    cpf = input("CPF do proprietário: ").strip()
-    matricula = input("Matrícula do funcionário: ").strip()
     
-    resultado = remover_veiculo_por_cpf(cpf, matricula, veiculos, vagas, historico, funcionarios)
+    # Validar CPF
+    while True:
+        cpf = input("CPF do proprietário: ").strip()
+        valido, msg = validar_cpf(cpf)
+        if valido:
+            break
+        print(msg)
+    
+    # Validar matrícula
+    while True:
+        matricula = input("Matrícula do funcionário: ").strip()
+        valido, msg = validar_matricula(matricula)
+        if valido:
+            break
+        print(msg)
+    
+    resultado = remover_veiculo_por_cpf(db, cpf, matricula)
     print(resultado)
-    
-    if "🗑️" in resultado:
-        salvar_dados(veiculos, vagas, historico, funcionarios)
 
-def cadastrar_funcionario_interface(veiculos, vagas, historico, funcionarios):
+def cadastrar_funcionario_interface(db: Session):
     """Interface para cadastro de funcionário"""
     print("\n=== CADASTRAR FUNCIONÁRIO ===")
+    
     nome = input("Nome do funcionário: ").strip()
-    matricula = input("Matrícula (4 dígitos): ").strip()
+    if not nome:
+        print("❌ Nome é obrigatório!")
+        return
     
-    resultado = cadastrar_funcionario(funcionarios, nome, matricula)
+    # Validar matrícula
+    while True:
+        matricula = input("Matrícula (4 dígitos): ").strip()
+        valido, msg = validar_matricula(matricula)
+        if valido:
+            break
+        print(msg)
+    
+    resultado = cadastrar_funcionario(db, nome, matricula)
     print(resultado)
-    
-    if "✅" in resultado:
-        salvar_dados(veiculos, vagas, historico, funcionarios)
 
-def login_funcionario_interface(veiculos, vagas, historico, funcionarios):
+def login_funcionario_interface(db: Session):
     """Interface para login de funcionário"""
     print("\n=== LOGIN FUNCIONÁRIO ===")
-    matricula = input("Digite sua matrícula: ").strip()
     
-    resultado = registrar_entrada(matricula, funcionarios, historico)
+    # Validar matrícula
+    while True:
+        matricula = input("Digite sua matrícula: ").strip()
+        valido, msg = validar_matricula(matricula)
+        if valido:
+            break
+        print(msg)
+    
+    resultado = registrar_entrada(db, matricula)
     print(resultado)
-    
-    if "🔓" in resultado:
-        salvar_dados(veiculos, vagas, historico, funcionarios)
 
-def logout_funcionario_interface(veiculos, vagas, historico, funcionarios):
+def logout_funcionario_interface(db: Session):
     """Interface para logout de funcionário"""
     print("\n=== LOGOUT FUNCIONÁRIO ===")
-    matricula = input("Digite sua matrícula: ").strip()
     
-    resultado = registrar_saida(matricula, funcionarios, historico)
+    # Validar matrícula
+    while True:
+        matricula = input("Digite sua matrícula: ").strip()
+        valido, msg = validar_matricula(matricula)
+        if valido:
+            break
+        print(msg)
+    
+    resultado = registrar_saida(db, matricula)
     print(resultado)
-    
-    if "🔒" in resultado:
-        salvar_dados(veiculos, vagas, historico, funcionarios)
 
-def menu_supervisor_interface():
+def menu_supervisor_interface(db: Session):
     """Interface para área do supervisor"""
     print("\n=== ACESSO RESTRITO - SUPERVISOR ===")
     from supervisor import menu_supervisor
-    
-    # Importar funções necessárias
-    menu_supervisor(
-        carregar_dados, 
-        salvar_dados, 
-        cadastrar_funcionario, 
-        listar_funcionarios, 
-        listar_veiculos_cadastrados
-    )
+    menu_supervisor(db)
 
 if __name__ == "__main__":
-    menu_principal() 
+    menu_principal()

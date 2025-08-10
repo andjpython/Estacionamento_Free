@@ -2,16 +2,23 @@
 Configuração do SQLAlchemy e funções auxiliares para o banco de dados
 """
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import declarative_base, sessionmaker, scoped_session
 from config import active_config
 
 # Cria o engine do SQLAlchemy usando a URL do banco de dados da configuração
-engine = create_engine(
-    active_config.DATABASE_URL,
-    # SQLite não suporta pool_size e outras configurações de pool
-    connect_args={"check_same_thread": False}  # Necessário para SQLite
-)
+database_url = str(active_config.DATABASE_URL)
+
+# Usar connect_args apenas para SQLite
+if database_url.startswith("sqlite"):  # SQLite
+    engine = create_engine(
+        database_url,
+        connect_args={"check_same_thread": False}
+    )
+else:  # PostgreSQL e outros
+    engine = create_engine(
+        database_url,
+        pool_pre_ping=True
+    )
 
 # Cria uma fábrica de sessões thread-safe
 session_factory = sessionmaker(

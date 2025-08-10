@@ -20,6 +20,9 @@ def ver_status_vagas(db: Session) -> str:
     
     if not vagas:
         return active_config.Mensagens.NENHUMA_VAGA_CADASTRADA
+        
+    # Ordenar vagas por número
+    vagas = sorted(vagas, key=lambda v: v.numero)
     
     status = ["📋 STATUS DAS VAGAS:"]
     for v in vagas:
@@ -53,7 +56,7 @@ def verificar_tempo_excedido(db: Session, limite_horas: int = None) -> list:
                         excedidos.append({
                             'numero': v.numero,
                             'tipo': v.tipo,
-                            'veiculo': v.veiculo.placa if v.veiculo else "Desconhecido",
+                            'veiculo': v.veiculo.placa if v.veiculo and hasattr(v.veiculo, 'placa') else "Desconhecido",
                             'horas': round(horas, 1)
                         })
                         

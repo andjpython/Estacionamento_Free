@@ -27,24 +27,24 @@ def estacionar_veiculo(db: Session, placa: str) -> str:
         
         # Verificar se já está estacionado
         vagas_ocupadas = vaga_repo.get_vagas_ocupadas()
-        if any(v.veiculo and v.veiculo.placa == placa for v in vagas_ocupadas):
+        if any(bool(v.veiculo) and v.veiculo.placa == placa for v in vagas_ocupadas):
             return active_config.Mensagens.VEICULO_JA_ESTACIONADO
         
-        tipo_vaga = "comum" if veiculo.tipo == "morador" else "visitante"
+        tipo_vaga = "comum" if str(veiculo.tipo) == "morador" else "visitante"
         vagas_livres = vaga_repo.get_vagas_livres(tipo_vaga)
         
         if not vagas_livres:
             return active_config.Mensagens.VAGA_NAO_DISPONIVEL.format(tipo=tipo_vaga)
         
         vaga = vagas_livres[0]  # Pega a primeira vaga livre
-        vaga_repo.ocupar_vaga(vaga, veiculo.id)
+        vaga_repo.ocupar_vaga(vaga, veiculo.id.scalar())
         
         # Registrar no histórico
         historico_repo.registrar_entrada(
             placa=placa,
-            nome=veiculo.nome,
-            tipo=veiculo.tipo,
-            vaga_numero=vaga.numero,
+            nome=str(veiculo.nome),
+            tipo=str(veiculo.tipo),
+            vaga_numero=vaga.numero.get_value(),
             funcionario_nome="Sistema",  # TODO: Passar funcionário
             matricula="0000"  # TODO: Passar matrícula
         )
@@ -104,11 +104,11 @@ def liberar_vaga(db: Session, placa: str, matricula: str) -> str:
         # Registrar saída no histórico
         historico_repo.registrar_saida(
             placa=placa,
-            nome=veiculo.nome,
-            tipo=veiculo.tipo,
-            vaga_numero=vaga.numero,
+            nome=str(veiculo.nome),
+            tipo=str(veiculo.tipo),
+            vaga_numero=vaga.numero.get_value(),
             tempo_min=tempo,
-            funcionario_nome=funcionario.nome,
+            funcionario_nome=str(funcionario.nome),
             matricula=matricula
         )
         
@@ -155,17 +155,17 @@ def remover_veiculo_por_cpf(db: Session, cpf: str, matricula: str) -> str:
                 vaga_repo.liberar_vaga(vaga)
             
             # Registrar no histórico
-            historico_repo.create(
-                acao="remocao_manual",
-                placa=veiculo.placa,
-                nome=veiculo.nome,
-                tipo=veiculo.tipo,
-                funcionario_nome=funcionario.nome,
-                matricula=matricula
-            )
+            historico_repo.create_from_dict({
+                'acao': "remocao_manual",
+                'placa': veiculo.placa,
+                'nome': str(veiculo.nome),
+                'tipo': str(veiculo.tipo),
+                'funcionario_nome': str(funcionario.nome),
+                'matricula': matricula
+            })
             
             # Remover veículo
-            veiculo_repo.delete(veiculo.id)
+            veiculo_repo.delete(veiculo.id.scalar())
             
             log_operation(logger, f"Veículo {veiculo.placa} removido por CPF {cpf_normalizado} por {funcionario.nome}")
         
@@ -185,14 +185,14 @@ def registrar_entrada(db: Session, matricula: str) -> str:
         if not funcionario:
             return active_config.Mensagens.FUNCIONARIO_NAO_ENCONTRADO
         
-        historico_repo.create(
-            acao="login",
-            placa="N/A",
-            nome=funcionario.nome,
-            tipo="funcionario",
-            funcionario_nome=funcionario.nome,
-            matricula=matricula
-        )
+        historico_repo.create_from_dict({
+            'acao': "login",
+            'placa': "N/A",
+            'nome': str(funcionario.nome),
+            'tipo': "funcionario",
+            'funcionario_nome': str(funcionario.nome),
+            'matricula': matricula
+        })
         
         log_operation(logger, f"Login registrado para funcionário {funcionario.nome}")
         return active_config.Mensagens.LOGIN_REALIZADO.format(nome=funcionario.nome)
@@ -211,14 +211,14 @@ def registrar_saida(db: Session, matricula: str) -> str:
         if not funcionario:
             return active_config.Mensagens.FUNCIONARIO_NAO_ENCONTRADO
         
-        historico_repo.create(
-            acao="logout",
-            placa="N/A",
-            nome=funcionario.nome,
-            tipo="funcionario",
-            funcionario_nome=funcionario.nome,
-            matricula=matricula
-        )
+        historico_repo.create_from_dict({
+            'acao': "logout",
+            'placa': "N/A",
+            'nome': str(funcionario.nome),
+            'tipo': "funcionario",
+            'funcionario_nome': str(funcionario.nome),
+            'matricula': matricula
+        })
         
         log_operation(logger, f"Logout registrado para funcionário {funcionario.nome}")
         return active_config.Mensagens.LOGOUT_REALIZADO.format(nome=funcionario.nome)
