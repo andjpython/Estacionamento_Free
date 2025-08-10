@@ -6,6 +6,7 @@ from flask import Flask, request, jsonify, render_template, redirect, url_for
 from flask_cors import CORS
 from utils.logger import system_logger
 from utils.metrics import metrics_collector, MetricsMiddleware
+from utils.rate_limiter import limiter
 
 import os
 from db import SessionLocal, init_db
@@ -20,6 +21,9 @@ CORS(app)
 
 # Middleware de métricas
 app.wsgi_app = MetricsMiddleware(app.wsgi_app, metrics_collector)  # type: ignore
+
+# Rate limiter
+limiter.init_app(app)
 
 # Inicialização automática do banco (para ambientes como Render)
 if os.environ.get('AUTO_INIT_DB', '1') == '1':
