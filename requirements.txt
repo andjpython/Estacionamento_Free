@@ -1,17 +1,13 @@
-# === Dependências principais ===
-Flask==3.0.0
-Flask-CORS==4.0.0
-pytz==2024.1
-SQLAlchemy==1.4.41
-psycopg[binary]>=3.1,<4  # Driver v3 compatível com Python 3.13
-alembic==1.13.1
-python-dotenv==1.0.0
-bcrypt==4.0.1
-PyJWT==2.8.0
-Flask-Limiter==3.5.0
-Flask-WTF==1.2.1
-gunicorn==21.2.0
-Werkzeug==3.0.1
-
-# === Dependências condicionais ===
-backports.zoneinfo; python_version<"3.9"
+Flask
+gunicorn
+SQLAlchemy
+python-dotenv
+psycopg2-binary==2.9.9
+Flask-CORS
+pytz
+alembic
+bcrypt
+PyJWT
+Flask-Limiter
+Flask-WTF
+Werkzeug
