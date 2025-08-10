@@ -37,11 +37,10 @@ Sistema completo e profissional para gestão de estacionamento rotativo em condo
 │   ├── supervisor.html             # Login do supervisor
 │   └── supervisor_sistema.html     # Sistema do supervisor
 │
-├── 💾 dados/                       # Persistência JSON
-│   ├── veiculos.json              # Dados dos veículos
-│   ├── vagas.json                 # Estado das vagas
-│   ├── funcionarios.json          # Dados dos funcionários
-│   └── historico.json             # Log de todas as operações
+├── 💾 alembic/                     # Migrações do banco de dados
+│   ├── versions/                  # Scripts de migração
+│   ├── env.py                    # Configuração do Alembic
+│   └── script.py.mako           # Template para migrações
 │
 └── 🎯 static/                      # Assets front-end
     ├── style.css                   # Estilos responsivos
@@ -95,6 +94,8 @@ Sistema completo e profissional para gestão de estacionamento rotativo em condo
 - **Matrícula**: 4 dígitos únicos
 - **Login/Logout**: Controle de sessão ativa
 - **Permissões**: Cadastrar veículos, estacionar, liberar vagas
+- **Remoção**: Exclusão permanente do banco de dados
+- **Histórico**: Registro de todas as operações incluindo remoções
 
 #### Supervisor
 - **Senha**: Configurável via `SENHA_SUPERVISOR` (padrão: 290479)
@@ -199,37 +200,42 @@ graph LR
     A[Frontend] -->|HTTP Request| B[Flask Routes]
     B --> C[Services Layer]
     C --> D[Business Logic]
-    D --> E[JSON Files]
+    D --> E[PostgreSQL]
     E --> D
     D --> C
     C --> B
     B -->|HTTP Response| A
 ```
 
-### Estrutura JSON
-```json
-{
-  "veiculos": [
-    {
-      "placa": "ABC1234",
-      "cpf": "12345678901",
-      "nome": "João Silva",
-      "modelo": "Honda Civic",
-      "tipo": "morador",
-      "bloco": "A",
-      "apartamento": "101"
-    }
-  ],
-  "vagas": [
-    {
-      "numero": 1,
-      "tipo": "comum",
-      "ocupada": true,
-      "veiculo": "ABC1234",
-      "entrada": "2025-01-29T10:30:00-03:00"
-    }
-  ]
-}
+### Estrutura do Banco de Dados
+```sql
+-- Tabela de Veículos
+CREATE TABLE veiculos (
+    id SERIAL PRIMARY KEY,
+    placa VARCHAR(7) UNIQUE NOT NULL,
+    cpf VARCHAR(11) NOT NULL,
+    nome VARCHAR(100) NOT NULL,
+    modelo VARCHAR(50),
+    tipo VARCHAR(20) NOT NULL,
+    bloco VARCHAR(10),
+    apartamento VARCHAR(10),
+    criado_em TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabela de Vagas
+CREATE TABLE vagas (
+    id SERIAL PRIMARY KEY,
+    numero INTEGER UNIQUE NOT NULL,
+    tipo VARCHAR(20) NOT NULL,
+    ocupada BOOLEAN DEFAULT FALSE,
+    veiculo_id INTEGER REFERENCES veiculos(id),
+    entrada TIMESTAMP WITH TIME ZONE
+);
+
+-- Índices para otimização
+CREATE INDEX idx_veiculos_placa ON veiculos(placa);
+CREATE INDEX idx_vagas_numero ON vagas(numero);
+CREATE INDEX idx_vagas_ocupada ON vagas(ocupada);
 ```
 
 ---
@@ -247,8 +253,10 @@ graph LR
 - **CSS3**: Estilos modernos com Grid/Flexbox
 - **JavaScript ES6+**: Lógica do cliente sem frameworks
 
-### Dados
-- **JSON**: Persistência simples e legível
+### Banco de Dados
+- **PostgreSQL**: Sistema de banco de dados robusto e escalável
+- **SQLAlchemy**: ORM para manipulação do banco de dados
+- **Alembic**: Gerenciamento de migrações do banco
 - **UTF-8**: Codificação para caracteres especiais
 
 ---

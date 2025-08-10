@@ -88,16 +88,21 @@ async function logoutFuncionario() {
   }
   
   try {
-    const { sucesso, dados } = await window.auth.fazerRequisicaoAutenticada(
-      '/logout-funcionario',
-      { matricula },
-      'POST'
-    );
+    const response = await fetch('/logout-funcionario', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': window.csrfToken
+      },
+      body: JSON.stringify({ matricula })
+    });
+    const dados = await response.json();
     
-    if (sucesso) {
+    if (response.ok) {
       localStorage.removeItem('matriculaLogada');
       atualizarFuncionariosLogados();
       verificarAcessoSistema();
+      atualizarBotaoSistemaCompleto(); // Atualizar visibilidade do botão
       window.utils.mostrarErro(dados.mensagem, 'success');
     } else {
       window.utils.mostrarErro(dados.mensagem);

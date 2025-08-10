@@ -37,14 +37,14 @@ def estacionar_veiculo(db: Session, placa: str) -> str:
             return active_config.Mensagens.VAGA_NAO_DISPONIVEL.format(tipo=tipo_vaga)
         
         vaga = vagas_livres[0]  # Pega a primeira vaga livre
-        vaga_repo.ocupar_vaga(vaga, veiculo.id.scalar())
+        vaga_repo.ocupar_vaga(vaga, veiculo.id)
         
         # Registrar no histórico
         historico_repo.registrar_entrada(
             placa=placa,
             nome=str(veiculo.nome),
             tipo=str(veiculo.tipo),
-            vaga_numero=vaga.numero.get_value(),
+            vaga_numero=vaga.numero,
             funcionario_nome="Sistema",  # TODO: Passar funcionário
             matricula="0000"  # TODO: Passar matrícula
         )
@@ -106,7 +106,7 @@ def liberar_vaga(db: Session, placa: str, matricula: str) -> str:
             placa=placa,
             nome=str(veiculo.nome),
             tipo=str(veiculo.tipo),
-            vaga_numero=vaga.numero.get_value(),
+            vaga_numero=vaga.numero,
             tempo_min=tempo,
             funcionario_nome=str(funcionario.nome),
             matricula=matricula
@@ -165,7 +165,7 @@ def remover_veiculo_por_cpf(db: Session, cpf: str, matricula: str) -> str:
             })
             
             # Remover veículo
-            veiculo_repo.delete(veiculo.id.scalar())
+            veiculo_repo.delete(veiculo.id)
             
             log_operation(logger, f"Veículo {veiculo.placa} removido por CPF {cpf_normalizado} por {funcionario.nome}")
         

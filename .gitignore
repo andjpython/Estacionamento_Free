@@ -47,9 +47,12 @@ env/
 # Alembic
 alembic.ini
 
-# Dados antigos
-dados/
-*.json
+# Arquivos de configuração local
+*.local.json
+
+# Arquivos temporários do Word
+~$*
+*.tmp
 
 # Outros
 .DS_Store

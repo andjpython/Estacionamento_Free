@@ -33,6 +33,7 @@ def login_supervisor():
     return jsonify({'mensagem': 'Senha incorreta!'}), 401
 
 @supervisor_bp.route('/logout-supervisor', methods=['POST'])
+@require_supervisor
 def logout_supervisor():
     global supervisor_logado
     supervisor_logado = False

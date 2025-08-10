@@ -1,65 +1,60 @@
 """
-Serviços para gerenciamento de funcionários
+Serviço para gerenciamento de funcionários
 """
-from typing import List
 from sqlalchemy.orm import Session
-from config import active_config
 from models import Funcionario
-from repositories import FuncionarioRepository
+from repositories import FuncionarioRepository, HistoricoRepository
+from utils.state import funcionarios_logados
 
 def cadastrar_funcionario(db: Session, nome: str, matricula: str) -> str:
-    """Cadastra um novo funcionário no sistema"""
-    repo = FuncionarioRepository(db)
+    """Cadastra um novo funcionário"""
+    funcionario_repo = FuncionarioRepository(db)
     
-    if repo.get_by_matricula(matricula):
-        return "❌ Matrícula já cadastrada."
-    
-    if not matricula or len(matricula) != 4 or not matricula.isdigit():
-        return active_config.Mensagens.MATRICULA_INVALIDA
-    
-    if not nome:
-        return "❌ Nome do funcionário é obrigatório."
-    
+    # Verificar se matrícula já existe
+    if funcionario_repo.get_by_matricula(matricula):
+        return "❌ Matrícula já cadastrada!"
+        
+    # Criar funcionário
     funcionario = Funcionario(
-        nome=nome.strip(),
-        matricula=matricula.strip(),
+        nome=nome,
+        matricula=matricula,
         ativo=True
     )
-    repo.create(funcionario)
+    funcionario_repo.create(funcionario)
     
-    return active_config.Mensagens.FUNCIONARIO_CADASTRADO.format(
-        nome=nome,
-        matricula=matricula
-    )
+    return f"✅ Funcionário {nome} cadastrado com matrícula {matricula}."
 
-def listar_funcionarios(db: Session) -> str:
-    """Lista todos os funcionários cadastrados"""
-    repo = FuncionarioRepository(db)
-    funcionarios = sorted(repo.get_all(), key=lambda f: f.nome)
-    
-    if not funcionarios:
-        return active_config.Mensagens.NENHUM_FUNCIONARIO_CADASTRADO
-    
-    return "\n".join([
-        f"👤 {f.nome} - Matrícula: {f.matricula}" +
-        (" (inativo)" if not f.ativo else "")
-        for f in funcionarios
-    ])
-
-def buscar_funcionario_por_matricula(db: Session, matricula: str) -> Funcionario:
-    """Busca um funcionário pela matrícula"""
-    repo = FuncionarioRepository(db)
-    return repo.get_by_matricula(matricula)
+def listar_funcionarios(db: Session) -> list:
+    """Lista todos os funcionários"""
+    funcionario_repo = FuncionarioRepository(db)
+    return funcionario_repo.get_all()
 
 def remover_funcionario(db: Session, matricula: str) -> str:
-    """Remove um funcionário do sistema"""
-    repo = FuncionarioRepository(db)
-    funcionario = repo.get_by_matricula(matricula)
+    """Remove completamente um funcionário do banco de dados"""
+    funcionario_repo = FuncionarioRepository(db)
+    historico_repo = HistoricoRepository(db)
     
+    # Verificar se funcionário existe
+    funcionario = funcionario_repo.get_by_matricula(matricula)
     if not funcionario:
-        return "❌ Funcionário não encontrado."
+        return "❌ Funcionário não encontrado!"
+        
+    # Se funcionário estiver logado, fazer logout
+    if matricula in funcionarios_logados:
+        funcionarios_logados.discard(matricula)
+        
+    # Registrar no histórico antes de remover
+    historico_repo.create_from_dict({
+        'acao': 'remocao_funcionario',
+        'placa': 'N/A',
+        'nome': funcionario.nome,
+        'tipo': 'funcionario',
+        'funcionario_nome': funcionario.nome,
+        'matricula': matricula
+    })
     
-    funcionario.ativo = False
-    repo.update(funcionario)
-    
-    return f"🗑️ Funcionário {funcionario.nome} removido."
+    # Remover funcionário completamente
+    if funcionario_repo.remover_por_matricula(matricula):
+        return f"✅ Funcionário {funcionario.nome} removido permanentemente!"
+    else:
+        return "❌ Erro ao remover funcionário!"

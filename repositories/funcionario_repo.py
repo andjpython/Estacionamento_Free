@@ -26,20 +26,11 @@ class FuncionarioRepository(BaseRepository[Funcionario]):
             .all()
         )
 
-    def desativar(self, matricula: str) -> bool:
-        """Desativa um funcionário"""
+    def remover_por_matricula(self, matricula: str) -> bool:
+        """Remove completamente um funcionário do banco de dados"""
         funcionario = self.get_by_matricula(matricula)
         if funcionario:
-            funcionario.ativo = False
-            self.session.commit()
-            return True
-        return False
-
-    def reativar(self, matricula: str) -> bool:
-        """Reativa um funcionário"""
-        funcionario = self.get_by_matricula(matricula)
-        if funcionario:
-            funcionario.ativo = True
+            self.session.delete(funcionario)
             self.session.commit()
             return True
         return False

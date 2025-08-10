@@ -279,7 +279,7 @@
     <div class="supervisor-info">
       ✅ Login confirmado com sucesso! | Supervisor: {{ nome_supervisor }}
       <div style="margin-top: 15px;">
-        <button onclick="logoutSupervisor()" style="
+        <button class="logout-supervisor" style="
           background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
           color: white;
           border: none;
@@ -395,6 +395,7 @@
   </div>
 
   <script src="/static/auth.js"></script>
+  <script src="/static/supervisor-sistema.js"></script>
   <script>
     // Obter token CSRF
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -601,16 +602,39 @@
     // Remover Funcionário
     document.getElementById('formRemoverFuncionario').addEventListener('submit', async function(e) {
       e.preventDefault();
-      const formData = new FormData(this);
-      const dados = Object.fromEntries(formData);
+      const matricula = document.getElementById('matriculaRemover').value;
+      const senha = document.getElementById('senhaSupervisorRemover').value;
       
-      const resultado = await fazerRequisicao('/remover-funcionario', dados, 'POST');
+      if (!matricula || !senha) {
+        mostrarResultado('resultadoRemoverFuncionario', 'Matrícula e senha são obrigatórios!', 'erro');
+        return;
+      }
       
-      if (resultado.sucesso) {
-        mostrarResultado('resultadoRemoverFuncionario', resultado.dados.mensagem, 'sucesso');
-        limparFormulario('formRemoverFuncionario');
-      } else {
-        mostrarResultado('resultadoRemoverFuncionario', resultado.dados.mensagem, 'erro');
+      try {
+        const response = await fetch('/remover-funcionario', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+          },
+          body: JSON.stringify({
+            matricula: matricula,
+            senha_supervisor: senha
+          })
+        });
+
+        const dados = await response.json();
+        
+        if (response.ok) {
+          mostrarResultado('resultadoRemoverFuncionario', dados.mensagem, 'sucesso');
+          limparFormulario('formRemoverFuncionario');
+          // Atualizar lista de funcionários
+          await listarFuncionariosLogados();
+        } else {
+          mostrarResultado('resultadoRemoverFuncionario', dados.mensagem, 'erro');
+        }
+      } catch (err) {
+        mostrarResultado('resultadoRemoverFuncionario', 'Erro de conexão com o servidor', 'erro');
       }
     });
 

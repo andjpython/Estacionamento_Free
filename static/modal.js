@@ -6,6 +6,7 @@ function abrirModalLogin() {
   if (modal) {
     modal.style.display = 'block';
     document.body.style.overflow = 'hidden'; // Previne scroll da página
+    atualizarBotaoSistemaCompleto(); // Atualizar estado do botão ao abrir modal
   }
 }
 

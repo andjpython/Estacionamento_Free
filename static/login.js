@@ -52,6 +52,7 @@ function configurarLoginFuncionario() {
         localStorage.setItem('matriculaLogada', matricula);
         window.atualizarFuncionariosLogados();
         window.verificarAcessoSistema();
+        atualizarBotaoSistemaCompleto();
         window.fecharModalLogin();
         window.utils.mostrarErro(dados.mensagem, 'success');
       } else {
@@ -66,5 +67,23 @@ function configurarLoginFuncionario() {
   });
 }
 
+// Função para atualizar visibilidade do botão de sistema completo
+function atualizarBotaoSistemaCompleto() {
+  const matriculaLogada = localStorage.getItem('matriculaLogada');
+  const sistemaNaoLogado = document.getElementById('sistemaNaoLogado');
+  const sistemaLogado = document.getElementById('sistemaLogado');
+  
+  if (matriculaLogada) {
+    if (sistemaNaoLogado) sistemaNaoLogado.style.display = 'none';
+    if (sistemaLogado) sistemaLogado.style.display = 'block';
+  } else {
+    if (sistemaNaoLogado) sistemaNaoLogado.style.display = 'block';
+    if (sistemaLogado) sistemaLogado.style.display = 'none';
+  }
+}
+
 // Inicializar quando a página carregar
-document.addEventListener('DOMContentLoaded', configurarLoginFuncionario);
+document.addEventListener('DOMContentLoaded', function() {
+  configurarLoginFuncionario();
+  atualizarBotaoSistemaCompleto(); // Verificar estado inicial
+});

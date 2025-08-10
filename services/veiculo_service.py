@@ -27,37 +27,44 @@ def validar_placa(placa):
 
 def validar_cpf(cpf):
     """Valida CPF com algoritmo de verificação dos dígitos"""
-    if not cpf:
-        return False
+    # Remover caracteres não numéricos
+    cpf = re.sub(r'[^0-9]', '', cpf)
     
-    # Remove caracteres não numéricos
-    cpf = re.sub(r'\D', '', cpf)
-    
-    # Verifica se tem 11 dígitos
+    # Verificar tamanho
     if len(cpf) != 11:
         return False
-    
-    # Verifica se não são todos iguais (ex: 111.111.111-11)
-    if cpf == cpf[0] * 11:
+        
+    # Verificar se todos os dígitos são iguais
+    if len(set(cpf)) == 1:
         return False
+        
+    # Calcular primeiro dígito verificador
+    soma = 0
+    for i in range(9):
+        soma += int(cpf[i]) * (10 - i)
+    resto = soma % 11
+    digito1 = 0 if resto < 2 else 11 - resto
     
-    # Validação dos dígitos verificadores
-    for i in range(9, 11):
-        soma = sum(int(cpf[j]) * ((i + 1) - j) for j in range(i))
-        digito = (soma * 10 % 11) % 10
-        if digito != int(cpf[i]):
-            return False
+    # Verificar primeiro dígito
+    if digito1 != int(cpf[9]):
+        return False
+        
+    # Calcular segundo dígito verificador
+    soma = 0
+    for i in range(10):
+        soma += int(cpf[i]) * (11 - i)
+    resto = soma % 11
+    digito2 = 0 if resto < 2 else 11 - resto
     
-    return True
+    # Verificar segundo dígito
+    return digito2 == int(cpf[10])
 
 def normalizar_cpf(cpf):
-    """Normaliza CPF removendo formatação"""
-    if not cpf:
-        return ""
-    return re.sub(r'\D', '', cpf.strip())
+    """Remove caracteres não numéricos do CPF"""
+    return re.sub(r'[^0-9]', '', cpf)
 
 def normalizar_placa(placa):
-    """Normaliza placa removendo espaços e convertendo para maiúscula"""
+    """Normaliza placa removendo espaços e convertendo para maiúsculas"""
     if not placa:
         return ""
     return placa.replace(" ", "").upper().strip()
@@ -108,23 +115,7 @@ def cadastrar_veiculo(db: Session, placa: str, cpf: str, modelo: str, nome: str,
     return active_config.Mensagens.VEICULO_CADASTRADO.format(placa=placa, tipo=tipo)
 
 # === Listar veículos cadastrados ===
-def listar_veiculos_cadastrados(db: Session) -> str:
+def listar_veiculos_cadastrados(db: Session) -> List[Veiculo]:
     """Lista todos os veículos cadastrados no sistema, ordenados por placa"""
     repo = VeiculoRepository(db)
-    veiculos = sorted(repo.get_all(), key=lambda v: v.placa)
-    
-    if not veiculos:
-        return "📭 Nenhum veículo cadastrado."
-        
-    return "\n".join([
-        f"🚗 {v.placa} - {v.nome} ({v.tipo})" +
-        (f" - Bloco {v.bloco} Apto {v.apartamento}" if v.tipo == "morador" else "")
-        for v in veiculos
-    ])
-
-# === Buscar veículo por placa ===
-def buscar_veiculo_por_placa(db: Session, placa: str) -> Veiculo:
-    """Busca um veículo pela placa"""
-    repo = VeiculoRepository(db)
-    placa_normalizada = normalizar_placa(placa)
-    return repo.get_by_placa(placa_normalizada)
+    return repo.get_all()
