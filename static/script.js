@@ -40,7 +40,7 @@ const loginSupervisorForm = document.getElementById('loginSupervisorForm');
 if (loginSupervisorForm) {
   loginSupervisorForm.addEventListener('submit', async function (e) {
     e.preventDefault();
-    const senha = document.getElementById('senhaSupervisor').value;
+    const senha = (document.getElementById('senhaSupervisor').value || '').trim();
     try {
       const base = window.location.origin;
       const res = await fetch(`${base}/login-supervisor`, {

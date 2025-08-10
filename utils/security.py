@@ -18,12 +18,13 @@ def verify_password(password: str, hashed_password: str) -> bool:
 
 def verify_supervisor_password(password: str) -> bool:
     """Verifica se a senha do supervisor está correta"""
+    expected = (active_config.SENHA_SUPERVISOR or "").strip()
+    password = (password or "").strip()
     # Se a senha ainda não foi hasheada (primeira execução), usa comparação direta
-    if not active_config.SENHA_SUPERVISOR.startswith('$2b$'):
-        return password == active_config.SENHA_SUPERVISOR
-    
+    if not expected.startswith('$2b$'):
+        return password == expected
     # Se a senha já foi hasheada, usa bcrypt para verificar
-    return verify_password(password, active_config.SENHA_SUPERVISOR)
+    return verify_password(password, expected)
 
 def create_jwt_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
     """Cria um token JWT"""

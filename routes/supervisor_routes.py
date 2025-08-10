@@ -15,8 +15,10 @@ supervisor_logado = False
 @login_limit()
 def login_supervisor():
     global supervisor_logado
-    data = request.get_json()
-    senha = data.get('senha')
+    data = request.get_json() or {}
+    senha = str(data.get('senha', '')).strip()
+    if not senha:
+        return jsonify({'mensagem': 'Senha não fornecida!'}), 400
     if verify_supervisor_password(senha):
         supervisor_logado = True
         # Criar token JWT

@@ -44,8 +44,12 @@ class Config:
     
     # === SEGURANÇA ===
     # Senha do supervisor (variável de ambiente ou padrão)
-    # Se a senha não estiver hasheada, será hasheada na primeira execução
-    SENHA_SUPERVISOR = os.environ.get("SENHA_SUPERVISOR", "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewqxbQNoqFEa9VNm")  # Hash de "290479"
+    # Normaliza para evitar espaços/copiar-e-colar com quebras de linha
+    _ENV_SENHA = os.environ.get("SENHA_SUPERVISOR")
+    if _ENV_SENHA is not None:
+        SENHA_SUPERVISOR = _ENV_SENHA.strip()
+    else:
+        SENHA_SUPERVISOR = "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewqxbQNoqFEa9VNm"  # Hash de "290479"
     
     # Chave secreta para tokens JWT
     JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "seu_segredo_super_secreto_aqui")
