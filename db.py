@@ -4,9 +4,14 @@ Configuração do SQLAlchemy e funções auxiliares para o banco de dados
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker, scoped_session
 from config import active_config
+import os
 
 # Cria o engine do SQLAlchemy usando a URL do banco de dados da configuração
-database_url = str(active_config.DATABASE_URL)
+database_url = os.environ.get('DATABASE_URL', str(active_config.DATABASE_URL))
+
+# Corrigir URL do PostgreSQL se necessário
+if database_url.startswith('postgres://'):
+    database_url = database_url.replace('postgres://', 'postgresql://', 1)
 
 # Usar connect_args apenas para SQLite
 if database_url.startswith("sqlite"):  # SQLite
@@ -17,7 +22,9 @@ if database_url.startswith("sqlite"):  # SQLite
 else:  # PostgreSQL e outros
     engine = create_engine(
         database_url,
-        pool_pre_ping=True
+        pool_pre_ping=True,
+        pool_size=5,
+        max_overflow=10
     )
 
 # Cria uma fábrica de sessões thread-safe
