@@ -38,6 +38,20 @@ class HistoricoRepository(BaseRepository[Historico]):
             .all()
         )
 
+    def create_from_dict(self, data: dict) -> Historico:
+        """Cria um registro de histórico a partir de um dicionário"""
+        historico = Historico(
+            acao=data.get('acao'),
+            placa=data.get('placa'),
+            nome=data.get('nome'),
+            tipo=data.get('tipo'),
+            vaga_numero=data.get('vaga_numero'),
+            tempo_min=data.get('tempo_min'),
+            funcionario_nome=data.get('funcionario_nome'),
+            matricula=data.get('matricula')
+        )
+        return self.create(historico)
+
     def registrar_entrada(
         self,
         placa: str,

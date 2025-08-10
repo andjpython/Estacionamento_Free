@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>Área do Supervisor - Recanto das Flores I</title>
   <link rel="icon" type="image/png" href="/static/imagens/icon.png">
   <link rel="stylesheet" href="/static/style.css">
@@ -392,7 +393,11 @@
     </div>
   </div>
 
+  <script src="/static/auth.js"></script>
   <script>
+    // Obter token CSRF
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
     // Função para mostrar resultado
     function mostrarResultado(elementId, mensagem, tipo) {
       const elemento = document.getElementById(elementId);
@@ -401,27 +406,30 @@
       elemento.classList.remove('hidden');
     }
 
-    // Função para fazer requisições AJAX
+    // Usar a função de requisição autenticada com CSRF
     async function fazerRequisicao(url, dados = null, metodo = 'GET') {
-      try {
-        const opcoes = {
-          method: metodo,
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        };
-
-        if (dados) {
-          opcoes.body = JSON.stringify(dados);
+      const opcoes = {
+        method: metodo,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
         }
+      };
 
-        const resposta = await fetch(url, opcoes);
-        const resultado = await resposta.json();
-        
-        return { sucesso: resposta.ok, dados: resultado };
-      } catch (erro) {
-        return { sucesso: false, dados: { mensagem: 'Erro de conexão: ' + erro.message } };
+      // Adicionar token JWT se disponível
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        opcoes.headers['Authorization'] = `Bearer ${token}`;
       }
+
+      if (dados) {
+        opcoes.body = JSON.stringify(dados);
+      }
+
+      const resposta = await fetch(url, opcoes);
+      const resultado = await resposta.json();
+      
+      return { sucesso: resposta.ok, dados: resultado };
     }
 
     // Função para limpar formulário
@@ -611,7 +619,14 @@
       document.getElementById('resultadoVeiculos').classList.add('hidden');
       document.getElementById('listaVeiculos').innerHTML = '';
       
-      const resultado = await fazerRequisicao('/veiculos');
+      const senha = prompt('Digite a senha do supervisor:');
+      if (!senha) {
+        document.getElementById('loadingVeiculos').classList.add('hidden');
+        mostrarResultado('resultadoVeiculos', 'Operação cancelada.', 'info');
+        return;
+      }
+      
+      const resultado = await fazerRequisicao(`/veiculos?senha_supervisor=${senha}`);
       
       document.getElementById('loadingVeiculos').classList.add('hidden');
       

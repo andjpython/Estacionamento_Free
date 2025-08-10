@@ -16,7 +16,7 @@ class Config:
     # === BANCO DE DADOS ===
     DATABASE_URL = os.environ.get(
         "DATABASE_URL",
-        "postgresql+psycopg2://usuario:senha@localhost:5432/estacionamento"
+        "sqlite:///./estacionamento.db"
     )
     
     # === REGRAS DE NEGÓCIO ===
@@ -41,10 +41,17 @@ class Config:
     
     # === SEGURANÇA ===
     # Senha do supervisor (variável de ambiente ou padrão)
-    SENHA_SUPERVISOR = os.environ.get("SENHA_SUPERVISOR", "290479")
+    # Se a senha não estiver hasheada, será hasheada na primeira execução
+    SENHA_SUPERVISOR = os.environ.get("SENHA_SUPERVISOR", "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewqxbQNoqFEa9VNm")  # Hash de "290479"
+    
+    # Chave secreta para tokens JWT
+    JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "seu_segredo_super_secreto_aqui")
+    
+    # Tempo de expiração do token JWT (em minutos)
+    JWT_EXPIRATION_MINUTES = 60
     
     # === TIMEZONE ===
-    TIMEZONE = "America/Sao_Paulo"
+    TIMEZONE = os.environ.get("TZ", "America/Sao_Paulo")
     
     # === LOGGING ===
     LOG_LEVEL = "INFO"
@@ -99,3 +106,5 @@ if config_name == 'production':
     active_config = ProductionConfig()
 else:
     active_config = DevelopmentConfig()
+
+    

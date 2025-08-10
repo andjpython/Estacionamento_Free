@@ -1,15 +1,14 @@
 from flask import Blueprint, request, jsonify
-from services.veiculo_service import cadastrar_veiculo, listar_veiculos_cadastrados, buscar_veiculo_por_placa, normalizar_placa
-from services.vaga_service import verificar_tempo_excedido
-from estacionamento import (
-    carregar_dados, salvar_dados,
-    estacionar_veiculo_por_dados, liberar_vaga, remover_veiculo_por_cpf
-)
-from routes.funcionarios_routes import funcionarios_logados
 from datetime import datetime
 import pytz
+
 from config import active_config
 from utils.logging_config import setup_logger, log_operation, log_error
+from db import SessionLocal
+from repositories import VeiculoRepository, VagaRepository, FuncionarioRepository, HistoricoRepository
+from services import veiculo_service, vaga_service
+from services.veiculo_service import normalizar_placa
+from routes.funcionarios_routes import funcionarios_logados
 
 # Configurar logger
 logger = setup_logger(__name__)
@@ -36,41 +35,49 @@ def cadastrar_veiculo_route():
         if not placa or not cpf or not matricula_func or not nome:
             return jsonify({'mensagem': 'Placa, CPF, matrícula e nome são obrigatórios!'}), 400
             
-        veiculos, vagas, historico, funcionarios = carregar_dados()
-        
-        # Verificar se funcionário existe
-        funcionario = next((f for f in funcionarios if f['matricula'] == matricula_func), None)
-        if not funcionario:
-            return jsonify({'mensagem': 'Funcionário não encontrado!'}), 403
+        db = SessionLocal()
+        try:
+            funcionario_repo = FuncionarioRepository(db)
+            historico_repo = HistoricoRepository(db)
             
-        # Verificar se funcionário está logado
-        if matricula_func not in funcionarios_logados:
-            return jsonify({'mensagem': 'Funcionário precisa estar logado para cadastrar veículo!'}), 403
+            # Verificar se funcionário existe
+            funcionario = funcionario_repo.get_by_matricula(matricula_func)
+            if not funcionario:
+                return jsonify({'mensagem': 'Funcionário não encontrado!'}), 403
+                
+            # Verificar se funcionário está logado
+            if matricula_func not in funcionarios_logados:
+                return jsonify({'mensagem': 'Funcionário precisa estar logado para cadastrar veículo!'}), 403
+                
+            # Cadastrar veículo
+            resposta = veiculo_service.cadastrar_veiculo(
+                db=db,
+                placa=placa,
+                cpf=cpf,
+                modelo=modelo,
+                nome=nome,
+                bloco=bloco,
+                apartamento=apartamento
+            )
             
-        # Cadastrar veículo
-        resposta = cadastrar_veiculo(veiculos, placa, cpf, modelo, nome, bloco, apartamento)
-        
-        # Se cadastro foi bem-sucedido, registrar no histórico
-        if "✅" in resposta:
-            historico.append({
-                'acao': 'cadastro_veiculo',
-                'data': datetime.now(pytz.timezone("America/Sao_Paulo")).isoformat(),
-                'matricula': matricula_func,
-                'nome_funcionario': funcionario['nome'],
-                'placa': normalizar_placa(placa),
-                'nome_proprietario': nome,
-                'cpf': cpf,
-                'modelo': modelo,
-                'bloco': bloco,
-                'apartamento': apartamento
-            })
+            # Se cadastro foi bem-sucedido, registrar no histórico
+            if "✅" in resposta:
+                historico_repo.create(
+                    acao="cadastro_veiculo",
+                    placa=normalizar_placa(placa),
+                    nome=nome,
+                    tipo="morador" if modelo else "visitante",
+                    funcionario_nome=funcionario.nome,
+                    matricula=matricula_func
+                )
+                
+                logger.info(f"Veículo {normalizar_placa(placa)} cadastrado por {funcionario.nome}")
+                
+            return jsonify({'mensagem': resposta})
             
-            # Salvar dados apenas uma vez
-            salvar_dados(veiculos, vagas, historico, funcionarios)
-            logger.info(f"Veículo {normalizar_placa(placa)} cadastrado por {funcionario['nome']}")
+        finally:
+            db.close()
             
-        return jsonify({'mensagem': resposta})
-        
     except Exception as e:
         logger.error(f"Erro ao cadastrar veículo: {e}")
         return jsonify({'mensagem': 'Erro interno do servidor!'}), 500
@@ -79,8 +86,22 @@ def cadastrar_veiculo_route():
 @veiculos_bp.route('/veiculos', methods=['GET'])
 def listar_veiculos():
     try:
-        veiculos, vagas, historico, funcionarios = carregar_dados()
-        return jsonify(veiculos)
+        db = SessionLocal()
+        try:
+            veiculos = veiculo_service.listar_veiculos_cadastrados(db)
+            return jsonify([{
+                'id': v.id,
+                'placa': v.placa,
+                'cpf': v.cpf,
+                'nome': v.nome,
+                'modelo': v.modelo,
+                'tipo': v.tipo,
+                'bloco': v.bloco,
+                'apartamento': v.apartamento,
+                'criado_em': v.criado_em.isoformat() if v.criado_em else None
+            } for v in veiculos])
+        finally:
+            db.close()
     except Exception as e:
         logger.error(f"Erro ao listar veículos: {e}")
         return jsonify({'mensagem': 'Erro interno do servidor!'}), 500
@@ -99,42 +120,53 @@ def estacionar():
         if not placa or not matricula:
             return jsonify({'mensagem': 'Placa e matrícula são obrigatórios!'}), 400
             
-        veiculos, vagas, historico, funcionarios = carregar_dados()
-        
-        # Verificar veículo e funcionário
-        veiculo = buscar_veiculo_por_placa(veiculos, placa)
-        funcionario = next((f for f in funcionarios if f['matricula'] == matricula), None)
-        
-        if not veiculo:
-            return jsonify({'mensagem': '❌ Veículo não cadastrado. Faça o cadastro primeiro.'}), 404
-        if not funcionario:
-            return jsonify({'mensagem': '❌ Funcionário não cadastrado.'}), 403
-        if matricula not in funcionarios_logados:
-            return jsonify({'mensagem': '❌ Funcionário precisa estar logado.'}), 403
+        db = SessionLocal()
+        try:
+            veiculo_repo = VeiculoRepository(db)
+            funcionario_repo = FuncionarioRepository(db)
             
-        resposta = estacionar_veiculo_por_dados(placa, veiculos, vagas, historico)
-        
-        if "✅" in resposta:
-            salvar_dados(veiculos, vagas, historico, funcionarios)
-            logger.info(f"Veículo {normalizar_placa(placa)} estacionado por {funcionario['nome']}")
+            # Verificar veículo e funcionário
+            veiculo = veiculo_repo.get_by_placa(placa)
+            funcionario = funcionario_repo.get_by_matricula(matricula)
             
-            # Buscar informações da vaga
-            placa_normalizada = normalizar_placa(placa)
-            vaga = next((v for v in vagas if v['ocupada'] and v['veiculo'] == placa_normalizada), None)
-            hora_entrada = vaga['entrada'] if vaga else None
-            numero_vaga = vaga['numero'] if vaga else None
+            if not veiculo:
+                return jsonify({'mensagem': '❌ Veículo não cadastrado. Faça o cadastro primeiro.'}), 404
+            if not funcionario:
+                return jsonify({'mensagem': '❌ Funcionário não cadastrado.'}), 403
+            if matricula not in funcionarios_logados:
+                return jsonify({'mensagem': '❌ Funcionário precisa estar logado.'}), 403
+                
+            from estacionamento import estacionar_veiculo
+            resposta = estacionar_veiculo(db, placa)
             
-            proprietario = {
-                'cpf': veiculo['cpf'],
-                'nome': veiculo['nome'],
-                'bloco': veiculo['bloco'],
-                'apartamento': veiculo['apartamento'],
-                'hora_entrada': hora_entrada
-            }
-            
-            return jsonify({'mensagem': resposta, 'proprietario': proprietario, 'vaga': numero_vaga})
-        else:
-            return jsonify({'mensagem': resposta}), 400
+            if "✅" in resposta:
+                logger.info(f"Veículo {normalizar_placa(placa)} estacionado por {funcionario.nome}")
+                
+                # Buscar informações da vaga
+                vaga_repo = VagaRepository(db)
+                vaga = next(
+                    (v for v in vaga_repo.get_vagas_ocupadas() if v.veiculo and v.veiculo.placa == placa),
+                    None
+                )
+                
+                proprietario = {
+                    'cpf': veiculo.cpf,
+                    'nome': veiculo.nome,
+                    'bloco': veiculo.bloco,
+                    'apartamento': veiculo.apartamento,
+                    'hora_entrada': vaga.entrada.isoformat() if vaga and vaga.entrada else None
+                }
+                
+                return jsonify({
+                    'mensagem': resposta,
+                    'proprietario': proprietario,
+                    'vaga': vaga.numero if vaga else None
+                })
+            else:
+                return jsonify({'mensagem': resposta}), 400
+                
+        finally:
+            db.close()
             
     except Exception as e:
         logger.error(f"Erro ao estacionar veículo: {e}")
@@ -154,44 +186,51 @@ def liberar_veiculo():
         if not placa or not matricula:
             return jsonify({'mensagem': 'Placa e matrícula são obrigatórios!'}), 400
             
-        veiculos, vagas, historico, funcionarios = carregar_dados()
-        
-        # Verificar veículo e funcionário
-        veiculo = buscar_veiculo_por_placa(veiculos, placa)
-        funcionario = next((f for f in funcionarios if f['matricula'] == matricula), None)
-        
-        if not veiculo:
-            return jsonify({'mensagem': '❌ Veículo não cadastrado.'}), 404
-        if not funcionario:
-            return jsonify({'mensagem': '❌ Funcionário não cadastrado.'}), 403
-        if matricula not in funcionarios_logados:
-            return jsonify({'mensagem': '❌ Funcionário precisa estar logado.'}), 403
+        db = SessionLocal()
+        try:
+            veiculo_repo = VeiculoRepository(db)
+            funcionario_repo = FuncionarioRepository(db)
             
-        resposta = liberar_vaga(placa, matricula, veiculos, vagas, historico, funcionarios)
-        
-        if "✅" in resposta:
-            salvar_dados(veiculos, vagas, historico, funcionarios)
-            logger.info(f"Veículo {normalizar_placa(placa)} liberado por {funcionario['nome']}")
+            # Verificar veículo e funcionário
+            veiculo = veiculo_repo.get_by_placa(placa)
+            funcionario = funcionario_repo.get_by_matricula(matricula)
             
-            # Buscar hora de saída no histórico
-            placa_normalizada = normalizar_placa(placa)
-            saida = None
-            for h in reversed(historico):
-                if h.get('acao') == 'saida_veiculo' and h.get('placa') == placa_normalizada:
-                    saida = h.get('data_saida')
-                    break
-                    
-            proprietario = {
-                'cpf': veiculo['cpf'],
-                'nome': veiculo['nome'],
-                'bloco': veiculo['bloco'],
-                'apartamento': veiculo['apartamento'],
-                'hora_saida': saida
-            }
+            if not veiculo:
+                return jsonify({'mensagem': '❌ Veículo não cadastrado.'}), 404
+            if not funcionario:
+                return jsonify({'mensagem': '❌ Funcionário não cadastrado.'}), 403
+            if matricula not in funcionarios_logados:
+                return jsonify({'mensagem': '❌ Funcionário precisa estar logado.'}), 403
+                
+            from estacionamento import liberar_vaga
+            resposta = liberar_vaga(db, placa, matricula)
             
-            return jsonify({'mensagem': resposta, 'proprietario': proprietario})
-        else:
-            return jsonify({'mensagem': resposta}), 400
+            if "✅" in resposta:
+                logger.info(f"Veículo {normalizar_placa(placa)} liberado por {funcionario.nome}")
+                
+                # Buscar hora de saída no histórico
+                historico_repo = HistoricoRepository(db)
+                historico = historico_repo.get_by_placa(placa)
+                saida = None
+                for h in reversed(historico):
+                    if h.acao == 'saida' and h.placa == placa:
+                        saida = h.data_evento
+                        break
+                        
+                proprietario = {
+                    'cpf': veiculo.cpf,
+                    'nome': veiculo.nome,
+                    'bloco': veiculo.bloco,
+                    'apartamento': veiculo.apartamento,
+                    'hora_saida': saida.isoformat() if saida else None
+                }
+                
+                return jsonify({'mensagem': resposta, 'proprietario': proprietario})
+            else:
+                return jsonify({'mensagem': resposta}), 400
+                
+        finally:
+            db.close()
             
     except Exception as e:
         logger.error(f"Erro ao liberar veículo: {e}")
@@ -211,22 +250,27 @@ def remover_veiculo_cpf():
         if not cpf or not matricula:
             return jsonify({'mensagem': 'CPF e matrícula são obrigatórios!'}), 400
             
-        veiculos, vagas, historico, funcionarios = carregar_dados()
-        
-        # Verificar se funcionário está logado
-        if matricula not in funcionarios_logados:
-            return jsonify({'mensagem': 'Funcionário precisa estar logado!'}), 403
+        db = SessionLocal()
+        try:
+            funcionario_repo = FuncionarioRepository(db)
             
-        resposta = remover_veiculo_por_cpf(cpf, matricula, veiculos, vagas, historico, funcionarios)
-        
-        if "🗑️" in resposta:  # Remoção bem-sucedida
-            salvar_dados(veiculos, vagas, historico, funcionarios)
-            funcionario = next((f for f in funcionarios if f['matricula'] == matricula), None)
-            if funcionario:
-                logger.info(f"Veículo removido por CPF {cpf} por {funcionario['nome']}")
+            # Verificar se funcionário está logado
+            if matricula not in funcionarios_logados:
+                return jsonify({'mensagem': 'Funcionário precisa estar logado!'}), 403
                 
-        return jsonify({'mensagem': resposta})
-        
+            from estacionamento import remover_veiculo_por_cpf
+            resposta = remover_veiculo_por_cpf(db, cpf, matricula)
+            
+            if "🗑️" in resposta:  # Remoção bem-sucedida
+                funcionario = funcionario_repo.get_by_matricula(matricula)
+                if funcionario:
+                    logger.info(f"Veículo removido por CPF {cpf} por {funcionario.nome}")
+                    
+            return jsonify({'mensagem': resposta})
+            
+        finally:
+            db.close()
+            
     except Exception as e:
         logger.error(f"Erro ao remover veículo: {e}")
         return jsonify({'mensagem': 'Erro interno do servidor!'}), 500
@@ -239,11 +283,27 @@ def historico_matricula():
         if not matricula:
             return jsonify({'mensagem': 'Matrícula é obrigatória!'}), 400
             
-        veiculos, vagas, historico, funcionarios = carregar_dados()
-        historico_filtrado = [h for h in historico if str(h.get('matricula', '')).strip() == matricula]
-        
-        return jsonify(historico_filtrado)
-        
+        db = SessionLocal()
+        try:
+            historico_repo = HistoricoRepository(db)
+            historico = historico_repo.get_by_matricula(matricula)
+            
+            return jsonify([{
+                'id': h.id,
+                'acao': h.acao,
+                'placa': h.placa,
+                'nome': h.nome,
+                'tipo': h.tipo,
+                'vaga_numero': h.vaga_numero,
+                'tempo_min': h.tempo_min,
+                'funcionario_nome': h.funcionario_nome,
+                'matricula': h.matricula,
+                'data_evento': h.data_evento.isoformat() if h.data_evento else None
+            } for h in historico])
+            
+        finally:
+            db.close()
+            
     except Exception as e:
         logger.error(f"Erro ao buscar histórico: {e}")
         return jsonify({'mensagem': 'Erro interno do servidor!'}), 500
@@ -252,8 +312,21 @@ def historico_matricula():
 @veiculos_bp.route('/vagas', methods=['GET'])
 def listar_vagas():
     try:
-        veiculos, vagas, historico, funcionarios = carregar_dados()
-        return jsonify(vagas)
+        db = SessionLocal()
+        try:
+            vaga_repo = VagaRepository(db)
+            vagas = vaga_repo.get_vagas_completas()
+            
+            return jsonify([{
+                'id': v.id,
+                'numero': v.numero,
+                'tipo': v.tipo,
+                'ocupada': v.ocupada,
+                'veiculo': v.veiculo.placa if v.veiculo else None,
+                'entrada': v.entrada.isoformat() if v.entrada else None
+            } for v in vagas])
+        finally:
+            db.close()
     except Exception as e:
         logger.error(f"Erro ao listar vagas: {e}")
         return jsonify({'mensagem': 'Erro interno do servidor!'}), 500
@@ -262,39 +335,47 @@ def listar_vagas():
 @veiculos_bp.route('/tempo-excedido', methods=['GET'])
 def tempo_excedido():
     try:
-        veiculos, vagas, historico, funcionarios = carregar_dados()
-        excedidos = verificar_tempo_excedido(vagas)
-        
-        if not excedidos:
-            return jsonify({
-                'mensagem': '✅ Nenhuma vaga excedeu o tempo.',
-                'excedidos': [],
-                'veiculos_excedidos': []
-            })
-        else:
-            mensagens = []
-            veiculos_excedidos = []
+        db = SessionLocal()
+        try:
+            excedidos = vaga_service.verificar_tempo_excedido(db)
             
-            for excedido in excedidos:
-                mensagens.append(f"⚠️ Vaga {excedido['numero']} com veículo {excedido['veiculo']} está há {excedido['horas']} horas!")
+            if not excedidos:
+                return jsonify({
+                    'mensagem': '✅ Nenhuma vaga excedeu o tempo.',
+                    'excedidos': [],
+                    'veiculos_excedidos': []
+                })
+            else:
+                mensagens = []
+                veiculos_excedidos = []
                 
-                # Buscar informações completas do veículo
-                veiculo_info = next((v for v in veiculos if v['placa'] == excedido['veiculo']), None)
-                if veiculo_info:
-                    veiculos_excedidos.append({
-                        'placa': excedido['veiculo'],
-                        'nome': veiculo_info['nome'],
-                        'vaga': excedido['numero'],
-                        'tempo_excedido': excedido['horas'] * 60,  # Converter para minutos
-                        'bloco': veiculo_info.get('bloco', ''),
-                        'apartamento': veiculo_info.get('apartamento', '')
-                    })
-            
-            return jsonify({
-                'mensagem': '\n'.join(mensagens),
-                'excedidos': excedidos,
-                'veiculos_excedidos': veiculos_excedidos
-            })
+                for excedido in excedidos:
+                    mensagens.append(
+                        f"⚠️ Vaga {excedido['numero']} com veículo {excedido['veiculo']} "
+                        f"está há {excedido['horas']} horas!"
+                    )
+                    
+                    # Buscar informações completas do veículo
+                    veiculo_repo = VeiculoRepository(db)
+                    veiculo = veiculo_repo.get_by_placa(excedido['veiculo'])
+                    if veiculo:
+                        veiculos_excedidos.append({
+                            'placa': excedido['veiculo'],
+                            'nome': veiculo.nome,
+                            'vaga': excedido['numero'],
+                            'tempo_excedido': excedido['horas'] * 60,  # Converter para minutos
+                            'bloco': veiculo.bloco,
+                            'apartamento': veiculo.apartamento
+                        })
+                
+                return jsonify({
+                    'mensagem': '\n'.join(mensagens),
+                    'excedidos': excedidos,
+                    'veiculos_excedidos': veiculos_excedidos
+                })
+                
+        finally:
+            db.close()
             
     except Exception as e:
         logger.error(f"Erro ao verificar tempo excedido: {e}")
@@ -302,4 +383,4 @@ def tempo_excedido():
             'mensagem': f'Erro ao verificar tempo excedido: {str(e)}',
             'excedidos': [],
             'veiculos_excedidos': []
-        }), 500 
+        }), 500

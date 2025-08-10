@@ -1,11 +1,16 @@
 from flask import Blueprint, request, jsonify
-from services.funcionario_service import cadastrar_funcionario, listar_funcionarios, buscar_funcionario_por_matricula
-from estacionamento import carregar_dados, salvar_dados, registrar_entrada, registrar_saida
 from datetime import datetime
 import pytz
 import os
+from sqlalchemy.orm import Session
+
 from config import active_config
 from utils.logging_config import setup_logger, log_operation, log_error
+from utils.security import verify_supervisor_password
+from utils.rate_limiter import login_limit, api_limit
+from db import SessionLocal
+from repositories import FuncionarioRepository, HistoricoRepository
+from services import funcionario_service
 
 # Configurar logger
 logger = setup_logger(__name__)
@@ -26,23 +31,21 @@ def cadastrar_funcionario_route():
         nome = data.get('nome', '').strip()
         matricula = data.get('matricula', '').strip()
         senha = data.get('senha_supervisor', '')
-        senha_master = active_config.SENHA_SUPERVISOR
         
         if not nome or not matricula:
             return jsonify({'mensagem': active_config.Mensagens.DADOS_NAO_FORNECIDOS}), 400
             
-        if senha != senha_master:
+        if not verify_supervisor_password(senha):
             return jsonify({'mensagem': active_config.Mensagens.SENHA_INCORRETA}), 403
             
-        veiculos, vagas, historico, funcionarios = carregar_dados()
-        resposta = cadastrar_funcionario(funcionarios, nome, matricula)
-        
-        if "✅" in resposta:  # Cadastro bem-sucedido
-            salvar_dados(veiculos, vagas, historico, funcionarios)
+        db = SessionLocal()
+        try:
+            resposta = funcionario_service.cadastrar_funcionario(db, nome, matricula)
             log_operation(logger, f"Funcionário {nome} cadastrado com matrícula {matricula}")
+            return jsonify({'mensagem': resposta})
+        finally:
+            db.close()
             
-        return jsonify({'mensagem': resposta})
-        
     except Exception as e:
         log_error(logger, e, "cadastro de funcionário")
         return jsonify({'mensagem': active_config.Mensagens.ERRO_INTERNO}), 500
@@ -57,15 +60,26 @@ def listar_funcionarios_route():
         if senha != senha_master:
             return jsonify({'mensagem': 'Acesso negado. Senha incorreta!'}), 403
             
-        veiculos, vagas, historico, funcionarios = carregar_dados()
-        return jsonify(funcionarios)
-        
+        db = SessionLocal()
+        try:
+            funcionarios = funcionario_service.listar_funcionarios(db)
+            return jsonify([{
+                'id': f.id,
+                'nome': f.nome,
+                'matricula': f.matricula,
+                'ativo': f.ativo,
+                'criado_em': f.criado_em.isoformat() if f.criado_em else None
+            } for f in funcionarios])
+        finally:
+            db.close()
+            
     except Exception as e:
         logger.error(f"Erro ao listar funcionários: {e}")
         return jsonify({'mensagem': 'Erro interno do servidor!'}), 500
 
 # Login funcionário
 @funcionarios_bp.route('/login-funcionario', methods=['POST'])
+@login_limit()
 def login_funcionario():
     try:
         data = request.get_json()
@@ -77,23 +91,36 @@ def login_funcionario():
         if not matricula:
             return jsonify({'mensagem': 'Matrícula é obrigatória!'}), 400
             
-        veiculos, vagas, historico, funcionarios = carregar_dados()
-        funcionario = next((f for f in funcionarios if str(f['matricula']).strip() == matricula), None)
-        
-        if not funcionario:
-            return jsonify({'mensagem': 'Matrícula não encontrada!'}), 404
+        db = SessionLocal()
+        try:
+            funcionario_repo = FuncionarioRepository(db)
+            historico_repo = HistoricoRepository(db)
             
-        if matricula in funcionarios_logados:
-            return jsonify({'mensagem': f'Funcionário {funcionario["nome"]} já está logado!'}), 200
+            funcionario = funcionario_repo.get_by_matricula(matricula)
             
-        # Registrar login
-        funcionarios_logados.add(matricula)
-        registrar_entrada(matricula, funcionarios, historico)
-        salvar_dados(veiculos, vagas, historico, funcionarios)
-        
-        logger.info(f"Funcionário {funcionario['nome']} (matrícula {matricula}) fez login")
-        return jsonify({'mensagem': f'Funcionário {funcionario["nome"]} logado com sucesso!'}), 200
-        
+            if not funcionario:
+                return jsonify({'mensagem': 'Matrícula não encontrada!'}), 404
+                
+            if matricula in funcionarios_logados:
+                return jsonify({'mensagem': f'Funcionário {funcionario.nome} já está logado!'}), 200
+                
+            # Registrar login
+            funcionarios_logados.add(matricula)
+            historico_repo.create_from_dict({
+                'acao': "login",
+                'placa': "N/A",
+                'nome': funcionario.nome,
+                'tipo': "funcionario",
+                'funcionario_nome': funcionario.nome,
+                'matricula': matricula
+            })
+            
+            logger.info(f"Funcionário {funcionario.nome} (matrícula {matricula}) fez login")
+            return jsonify({'mensagem': f'Funcionário {funcionario.nome} logado com sucesso!'}), 200
+            
+        finally:
+            db.close()
+            
     except Exception as e:
         logger.error(f"Erro no login do funcionário: {e}")
         return jsonify({'mensagem': 'Erro interno do servidor!'}), 500
@@ -114,18 +141,32 @@ def logout_funcionario():
         if matricula not in funcionarios_logados:
             return jsonify({'mensagem': 'Funcionário não estava logado.'}), 400
             
-        veiculos, vagas, historico, funcionarios = carregar_dados()
-        funcionario = next((f for f in funcionarios if str(f['matricula']).strip() == matricula), None)
-        
-        # Registrar logout
-        funcionarios_logados.discard(matricula)
-        if funcionario:
-            registrar_saida(matricula, funcionarios, historico)
-            salvar_dados(veiculos, vagas, historico, funcionarios)
-            logger.info(f"Funcionário {funcionario['nome']} (matrícula {matricula}) fez logout")
-            return jsonify({'mensagem': f'Funcionário {funcionario["nome"]} deslogado com sucesso!'}), 200
-        else:
-            return jsonify({'mensagem': f'Funcionário {matricula} deslogado com sucesso!'}), 200
+        db = SessionLocal()
+        try:
+            funcionario_repo = FuncionarioRepository(db)
+            historico_repo = HistoricoRepository(db)
+            
+            funcionario = funcionario_repo.get_by_matricula(matricula)
+            
+            # Registrar logout
+            funcionarios_logados.discard(matricula)
+            if funcionario:
+                historico_repo.create(
+                    acao="logout",
+                    placa="N/A",
+                    nome=funcionario.nome,
+                    tipo="funcionario",
+                    funcionario_nome=funcionario.nome,
+                    matricula=matricula
+                )
+                
+                logger.info(f"Funcionário {funcionario.nome} (matrícula {matricula}) fez logout")
+                return jsonify({'mensagem': f'Funcionário {funcionario.nome} deslogado com sucesso!'}), 200
+            else:
+                return jsonify({'mensagem': f'Funcionário {matricula} deslogado com sucesso!'}), 200
+                
+        finally:
+            db.close()
             
     except Exception as e:
         logger.error(f"Erro no logout do funcionário: {e}")
@@ -135,10 +176,23 @@ def logout_funcionario():
 @funcionarios_bp.route('/funcionarios-logados')
 def funcionarios_logados_route():
     try:
-        veiculos, vagas, historico, funcionarios = carregar_dados()
-        logados = [f for f in funcionarios if str(f['matricula']).strip() in funcionarios_logados]
-        return jsonify(logados)
-        
+        db = SessionLocal()
+        try:
+            funcionario_repo = FuncionarioRepository(db)
+            logados = [
+                {
+                    'id': f.id,
+                    'nome': f.nome,
+                    'matricula': f.matricula,
+                    'ativo': f.ativo
+                }
+                for f in funcionario_repo.get_ativos()
+                if str(f.matricula).strip() in funcionarios_logados
+            ]
+            return jsonify(logados)
+        finally:
+            db.close()
+            
     except Exception as e:
         logger.error(f"Erro ao listar funcionários logados: {e}")
         return jsonify({'mensagem': 'Erro interno do servidor!'}), 500
@@ -153,4 +207,4 @@ def verificar_login(matricula):
         
     except Exception as e:
         logger.error(f"Erro ao verificar login: {e}")
-        return jsonify({'logado': False, 'mensagem': 'Erro interno do servidor!'}), 500 
+        return jsonify({'logado': False, 'mensagem': 'Erro interno do servidor!'}), 500

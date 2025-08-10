@@ -44,6 +44,8 @@ if (loginSupervisorForm) {
       const dados = await res.json();
       alert(dados.mensagem);
       if (res.status === 200 && dados.redirect) {
+        // Armazenar token JWT
+        localStorage.setItem('authToken', dados.token);
         marcarSupervisorLogado(); // Marcar supervisor como logado
         fecharModalLogin(); // Fecha o modal após login bem-sucedido
         window.location.href = dados.redirect;

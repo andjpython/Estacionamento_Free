@@ -1,6 +1,7 @@
 """
 Serviços para gerenciamento de funcionários
 """
+from typing import List
 from sqlalchemy.orm import Session
 from config import active_config
 from models import Funcionario
@@ -31,18 +32,10 @@ def cadastrar_funcionario(db: Session, nome: str, matricula: str) -> str:
         matricula=matricula
     )
 
-def listar_funcionarios(db: Session) -> str:
+def listar_funcionarios(db: Session) -> List[Funcionario]:
     """Lista todos os funcionários cadastrados"""
     repo = FuncionarioRepository(db)
-    funcionarios = repo.get_ativos()
-    
-    if not funcionarios:
-        return active_config.Mensagens.NENHUM_FUNCIONARIO_CADASTRADO
-    
-    return "\n".join([
-        f"Nome: {f.nome} | Matrícula: {f.matricula}"
-        for f in funcionarios
-    ])
+    return repo.get_ativos()
 
 def buscar_funcionario_por_matricula(db: Session, matricula: str) -> Funcionario:
     """Busca um funcionário pela matrícula"""

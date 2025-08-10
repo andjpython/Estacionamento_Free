@@ -4,6 +4,7 @@ Serviço de gerenciamento de veículos
 import re
 from datetime import datetime
 import pytz
+from typing import List
 from sqlalchemy.orm import Session
 from config import active_config
 from models import Veiculo
@@ -105,22 +106,11 @@ def cadastrar_veiculo(db: Session, placa: str, cpf: str, modelo: str, nome: str,
     return active_config.Mensagens.VEICULO_CADASTRADO.format(placa=placa, tipo=tipo)
 
 # === Listar veículos cadastrados ===
-def listar_veiculos_cadastrados(db: Session) -> str:
+def listar_veiculos_cadastrados(db: Session) -> List[Veiculo]:
     """Lista todos os veículos cadastrados no sistema"""
     repo = VeiculoRepository(db)
     veiculos = repo.get_all()
-    
-    if not veiculos:
-        return active_config.Mensagens.NENHUM_VEICULO_CADASTRADO
-    
-    linhas = ["📄 VEÍCULOS CADASTRADOS:"]
-    for v in veiculos:
-        linhas.append(
-            f"🔹 Placa: {v.placa} | Nome: {v.nome} | Tipo: {v.tipo.capitalize()} | "
-            f"CPF: {v.cpf} | Modelo: {v.modelo or 'N/A'} | "
-            f"Bloco: {v.bloco} | Apto: {v.apartamento}"
-        )
-    return "\n".join(linhas)
+    return veiculos
 
 # === Buscar veículo por placa ===
 def buscar_veiculo_por_placa(db: Session, placa: str) -> Veiculo:

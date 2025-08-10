@@ -9,11 +9,8 @@ from config import active_config
 # Cria o engine do SQLAlchemy usando a URL do banco de dados da configuração
 engine = create_engine(
     active_config.DATABASE_URL,
-    # Configurações recomendadas para produção
-    pool_size=5,
-    max_overflow=10,
-    pool_timeout=30,
-    pool_recycle=1800,  # Reconecta após 30 minutos
+    # SQLite não suporta pool_size e outras configurações de pool
+    connect_args={"check_same_thread": False}  # Necessário para SQLite
 )
 
 # Cria uma fábrica de sessões thread-safe
