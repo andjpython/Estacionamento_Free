@@ -1,52 +1,51 @@
 """
 Configuração do SQLAlchemy e funções auxiliares para o banco de dados
 """
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker, scoped_session
 from config import active_config
-import os
 
-# Cria o engine do SQLAlchemy usando a URL do banco de dados da configuração
-database_url = os.environ.get('DATABASE_URL', str(active_config.DATABASE_URL))
+# Obter URL do banco de dados
+database_url = os.getenv('DATABASE_URL', str(active_config.DATABASE_URL))
 
-# Corrigir URL do PostgreSQL se necessário
+# Corrigir URL do PostgreSQL se necessário (Render usa postgres://, SQLAlchemy precisa de postgresql://)
 if database_url.startswith('postgres://'):
     database_url = database_url.replace('postgres://', 'postgresql://', 1)
 
-# Usar connect_args apenas para SQLite
-if database_url.startswith("sqlite"):  # SQLite
-    engine = create_engine(
-        database_url,
-        connect_args={"check_same_thread": False}
-    )
-else:  # PostgreSQL e outros
-    engine = create_engine(
-        database_url,
-        pool_pre_ping=True,
-        pool_size=5,
-        max_overflow=10
-    )
+# Configurações do engine
+engine_config = {
+    'pool_pre_ping': True,
+    'pool_size': 5,
+    'max_overflow': 10,
+    'pool_timeout': 30,
+    'pool_recycle': 1800
+}
 
-# Cria uma fábrica de sessões thread-safe
+# Criar engine com base no tipo de banco
+if database_url.startswith('sqlite:'):
+    engine = create_engine(
+        database_url,
+        connect_args={'check_same_thread': False}
+    )
+else:
+    engine = create_engine(database_url, **engine_config)
+
+# Configurar sessão
 session_factory = sessionmaker(
     bind=engine,
     autocommit=False,
     autoflush=False
 )
 
-# Cria um escopo de sessão para garantir thread safety
+# Criar escopo de sessão thread-safe
 SessionLocal = scoped_session(session_factory)
 
-# Classe base para os modelos ORM
+# Classe base para os modelos
 Base = declarative_base()
 
 def get_db():
-    """
-    Função geradora de contexto para obter uma sessão do banco de dados.
-    Uso:
-        with get_db() as db:
-            db.query(...)
-    """
+    """Contexto de banco de dados para uso com 'with'"""
     db = SessionLocal()
     try:
         yield db
@@ -54,8 +53,5 @@ def get_db():
         db.close()
 
 def init_db():
-    """
-    Inicializa o banco de dados criando todas as tabelas.
-    Normalmente não é necessário chamar diretamente, use Alembic para migrations.
-    """
+    """Inicializa o banco de dados"""
     Base.metadata.create_all(bind=engine)
