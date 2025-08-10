@@ -1,335 +1,223 @@
-# 🅿️ Sistema de Estacionamento Rotativo - Recantos das Flores I
+# Sistema de Estacionamento Rotativo - Recantos das Flores I
 
-## 📋 Visão Geral
+## Sumário
+1. [Visão Geral](#visão-geral)
+2. [Arquitetura](#arquitetura)
+3. [Funcionalidades](#funcionalidades)
+4. [Configuração](#configuração)
+5. [API e Integrações](#api-e-integrações)
+6. [Segurança](#segurança)
+7. [Interface do Usuário](#interface-do-usuário)
+8. [Desenvolvimento](#desenvolvimento)
+9. [Manutenção](#manutenção)
 
-Sistema completo e profissional para gestão de estacionamento rotativo em condomínios, desenvolvido com Python (Flask), HTML5, CSS3 e JavaScript moderno. O sistema possui layout institucional, responsivo, seguro e modularizado.
+## Visão Geral
 
----
+### Descrição
+Sistema de gestão de estacionamento rotativo desenvolvido para o condomínio Recantos das Flores I, oferecendo controle completo de vagas, veículos e usuários.
 
-## 🏗️ Arquitetura do Sistema
+### Principais Características
+- Gestão de vagas para moradores e visitantes
+- Controle de tempo de permanência
+- Interface responsiva e intuitiva
+- Sistema de alertas em tempo real
+- Registro completo de operações
 
-### Estrutura Organizacional
+### Tecnologias Principais
+- Backend: Python 3.10+ com Flask 2.3.3
+- Frontend: HTML5, CSS3, JavaScript ES6+
+- Banco de Dados: PostgreSQL
+- ORM: SQLAlchemy
+- Migrações: Alembic
 
+## Arquitetura
+
+### Estrutura de Diretórios
 ```
-📁 estacionamento_rotativo1/
-├── 🔧 config.py                    # Configurações centralizadas
-├── 🚀 app.py                       # Aplicação Flask principal
-├── 🧠 estacionamento.py            # Lógica de negócio principal
-├── 👨‍💼 supervisor.py                 # Interface do supervisor (terminal)
-├── 📦 requirements.txt             # Dependências Python
-├── 📚 DOCUMENTACAO_SISTEMA.md      # Esta documentação
-├── 📄 README.md                    # Guia de instalação e uso
-│
-├── 🛠️ services/                    # Camada de serviços
-│   ├── veiculo_service.py          # Lógica de veículos
-│   ├── funcionario_service.py      # Lógica de funcionários
-│   ├── vaga_service.py             # Lógica de vagas
-│   └── historico_service.py        # Lógica de histórico
-│
-├── 🌐 routes/                      # Rotas da API REST
-│   ├── veiculos_routes.py          # Endpoints de veículos
-│   ├── funcionarios_routes.py      # Endpoints de funcionários
-│   └── supervisor_routes.py        # Endpoints do supervisor
-│
-├── 🎨 templates/                   # Interface HTML
-│   ├── index.html                  # Página inicial institucional
-│   ├── sistema.html                # Sistema de funcionários
-│   ├── supervisor.html             # Login do supervisor
-│   └── supervisor_sistema.html     # Sistema do supervisor
-│
-├── 💾 alembic/                     # Migrações do banco de dados
-│   ├── versions/                  # Scripts de migração
-│   ├── env.py                    # Configuração do Alembic
-│   └── script.py.mako           # Template para migrações
-│
-└── 🎯 static/                      # Assets front-end
-    ├── style.css                   # Estilos responsivos
-    ├── script.js                   # JavaScript principal
-    ├── timer-config.js             # Configurações do timer
-    └── imagens/                    # Recursos visuais
+estacionamento_rotativo/
+├── app/
+│   ├── services/         # Regras de negócio
+│   ├── models/          # Modelos de dados
+│   ├── routes/          # Endpoints da API
+│   └── utils/           # Utilitários
+├── static/              # Recursos estáticos
+├── templates/           # Templates HTML
+├── tests/              # Testes automatizados
+├── alembic/            # Migrações
+└── config/             # Configurações
 ```
 
----
+### Camadas do Sistema
+1. **Apresentação**: Interface web responsiva
+2. **API**: Endpoints REST para operações
+3. **Serviços**: Lógica de negócio
+4. **Persistência**: Banco de dados PostgreSQL
 
-## ⚙️ Lógica Central do Sistema
+## Funcionalidades
 
-### 1. **Gestão de Veículos**
+### Gestão de Veículos
 
-#### Tipos de Veículos
-- **Moradores**: Têm direito a vagas comuns (1-20)
-- **Visitantes**: Podem usar apenas vagas de visitantes (21-30)
+#### Tipos e Regras
+- **Moradores**
+  - Acesso às vagas 1-20
+  - Cadastro com modelo do veículo obrigatório
+  - Identificação por placa e CPF
 
-#### Processo de Cadastro
-```python
-# Validações obrigatórias:
-- Placa: Formato ABC1234 (antigo) ou ABC1D23 (Mercosul)
-- CPF: Validação completa com dígitos verificadores
-- Nome: Campo obrigatório
-- Modelo: Define automaticamente se é morador/visitante
-```
+- **Visitantes**
+  - Acesso às vagas 21-30
+  - Cadastro simplificado
+  - Tempo máximo de permanência: 72h
 
-#### Regras de Negócio
-- **Uma placa por cadastro**: Não permite duplicatas
-- **Normalização automática**: Placas em maiúscula, CPFs apenas números
-- **Histórico completo**: Todas as operações são registradas
+#### Validações
+- Placa: Formatos ABC1234 ou ABC1D23 (Mercosul)
+- CPF: Validação completa dos dígitos
+- Dados normalizados automaticamente
 
-### 2. **Sistema de Vagas**
+### Sistema de Vagas
 
-#### Configuração Padrão
-- **20 vagas comuns** (números 1-20): Exclusivas para moradores
-- **10 vagas visitantes** (números 21-30): Para visitantes
+#### Configuração
+- 20 vagas para moradores (1-20)
+- 10 vagas para visitantes (21-30)
+- Monitoramento em tempo real
+- Sistema de alertas visual
 
-#### Estados das Vagas
-- **Livre**: `ocupada: false`, sem veículo
-- **Ocupada**: `ocupada: true`, com placa e timestamp de entrada
+#### Estados
+- **Livre**: Disponível para uso
+- **Ocupada**: Com registro de entrada
+- **Em alerta**: Próximo ao limite de tempo
 
-#### Limite de Tempo
-- **72 horas (3 dias)**: Tempo máximo permitido
-- **Timer regressivo**: Contagem em tempo real no frontend
-- **Sistema de alertas**: Visual por cores (verde/amarelo/vermelho)
+### Controle de Acesso
 
-### 3. **Controle de Acesso**
+#### Níveis de Usuário
+1. **Funcionários**
+   - Cadastro de veículos
+   - Operações de entrada/saída
+   - Consulta de status
 
-#### Funcionários
-- **Matrícula**: 4 dígitos únicos
-- **Login/Logout**: Controle de sessão ativa
-- **Permissões**: Cadastrar veículos, estacionar, liberar vagas
-- **Remoção**: Exclusão permanente do banco de dados
-- **Histórico**: Registro de todas as operações incluindo remoções
+2. **Supervisor**
+   - Gestão de funcionários
+   - Relatórios gerenciais
+   - Configurações do sistema
 
-#### Supervisor
-- **Senha**: Configurável via `SENHA_SUPERVISOR` (padrão: 290479)
-- **Permissões especiais**: Cadastrar funcionários, relatórios, remoções
-
-### 4. **Fluxo de Operações**
-
-#### Estacionamento
-```mermaid
-graph TD
-    A[Funcionário logado] --> B[Insere placa]
-    B --> C{Veículo cadastrado?}
-    C -->|Não| D[Erro: Cadastre primeiro]
-    C -->|Sim| E{Já estacionado?}
-    E -->|Sim| F[Erro: Já ocupado]
-    E -->|Não| G{Tipo do veículo}
-    G -->|Morador| H[Busca vaga comum]
-    G -->|Visitante| I[Busca vaga visitante]
-    H --> J{Vaga disponível?}
-    I --> J
-    J -->|Não| K[Erro: Sem vagas]
-    J -->|Sim| L[Estaciona + timestamp]
-    L --> M[Registra no histórico]
-```
-
-#### Liberação de Vaga
-```mermaid
-graph TD
-    A[Funcionário logado] --> B[Insere placa]
-    B --> C{Veículo na vaga?}
-    C -->|Não| D[Erro: Não encontrado]
-    C -->|Sim| E[Calcula tempo permanência]
-    E --> F[Libera vaga]
-    F --> G[Registra saída no histórico]
-```
-
----
-
-## 🕒 Sistema de Timer Regressivo
-
-### Funcionalidades
-- **Contagem em tempo real**: Atualização a cada segundo
-- **Formato legível**: `2d 15h 30m 45s`
-- **Alertas visuais progressivos**:
-  - 🟢 **Verde**: > 25% do tempo restante (normal)
-  - 🟡 **Amarelo**: 10-25% do tempo restante (atenção)
-  - 🔴 **Vermelho**: < 10% do tempo restante (crítico)
-  - 💥 **Flash**: Tempo esgotado
-
-### Implementação Técnica
-- **Frontend**: JavaScript puro com `setInterval()`
-- **Backend**: Timestamp ISO 8601 com timezone de São Paulo
-- **Sincronização**: Auto-refresh a cada 30 segundos
-- **Performance**: Cleanup automático previne vazamentos de memória
-
----
-
-## 🔒 Segurança
-
-### Autenticação
-- **Sessão de funcionários**: Controle via `set()` em memória
-- **Validação de rotas**: Middleware verifica login antes das operações
-- **Senha do supervisor**: Variável de ambiente ou padrão
-
-### Validações
-- **CPF**: Algoritmo completo de validação dos dígitos verificadores
-- **Placa**: Regex para formatos antigo e Mercosul
-- **Sanitização**: Normalização automática de dados de entrada
-
-### Auditoria
-- **Histórico completo**: Todas as operações são logadas
-- **Timestamps**: Data/hora de cada ação
-- **Responsabilidade**: Registra qual funcionário executou cada operação
-
----
-
-## 🎨 Interface do Usuário
-
-### Design Responsivo
-- **Mobile-first**: Layout otimizado para dispositivos móveis
-- **CSS Grid/Flexbox**: Layout moderno e flexível
-- **Acessibilidade**: Contrastes adequados e navegação por teclado
-
-### Experiência do Usuário
-- **Feedback imediato**: Mensagens claras de sucesso/erro
-- **Loading states**: Indicadores visuais durante operações
-- **Navegação intuitiva**: Botões "Voltar" e breadcrumbs
-
-### Componentes Principais
-- **Página inicial**: Layout institucional com informações do condomínio
-- **Sistema de funcionários**: Interface operacional completa
-- **Painel do supervisor**: Acesso a funções administrativas
-- **Status das vagas**: Visualização em tempo real com timer
-
----
-
-## 🔄 Fluxo de Dados
-
-### Persistência
-```mermaid
-graph LR
-    A[Frontend] -->|HTTP Request| B[Flask Routes]
-    B --> C[Services Layer]
-    C --> D[Business Logic]
-    D --> E[PostgreSQL]
-    E --> D
-    D --> C
-    C --> B
-    B -->|HTTP Response| A
-```
-
-### Estrutura do Banco de Dados
-```sql
--- Tabela de Veículos
-CREATE TABLE veiculos (
-    id SERIAL PRIMARY KEY,
-    placa VARCHAR(7) UNIQUE NOT NULL,
-    cpf VARCHAR(11) NOT NULL,
-    nome VARCHAR(100) NOT NULL,
-    modelo VARCHAR(50),
-    tipo VARCHAR(20) NOT NULL,
-    bloco VARCHAR(10),
-    apartamento VARCHAR(10),
-    criado_em TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- Tabela de Vagas
-CREATE TABLE vagas (
-    id SERIAL PRIMARY KEY,
-    numero INTEGER UNIQUE NOT NULL,
-    tipo VARCHAR(20) NOT NULL,
-    ocupada BOOLEAN DEFAULT FALSE,
-    veiculo_id INTEGER REFERENCES veiculos(id),
-    entrada TIMESTAMP WITH TIME ZONE
-);
-
--- Índices para otimização
-CREATE INDEX idx_veiculos_placa ON veiculos(placa);
-CREATE INDEX idx_vagas_numero ON vagas(numero);
-CREATE INDEX idx_vagas_ocupada ON vagas(ocupada);
-```
-
----
-
-## 🚀 Tecnologias Utilizadas
-
-### Backend
-- **Python 3.10+**: Linguagem principal
-- **Flask 2.3.3**: Framework web minimalista
-- **Flask-CORS**: Suporte a CORS para APIs
-- **pytz**: Manipulação de fusos horários
-
-### Frontend
-- **HTML5**: Estrutura semântica
-- **CSS3**: Estilos modernos com Grid/Flexbox
-- **JavaScript ES6+**: Lógica do cliente sem frameworks
-
-### Banco de Dados
-- **PostgreSQL**: Sistema de banco de dados robusto e escalável
-- **SQLAlchemy**: ORM para manipulação do banco de dados
-- **Alembic**: Gerenciamento de migrações do banco
-- **UTF-8**: Codificação para caracteres especiais
-
----
-
-## ⚡ Performance
-
-### Otimizações
-- **Lazy loading**: Carregamento sob demanda de seções
-- **Cache de dados**: Minimiza requisições desnecessárias
-- **Cleanup de timers**: Previne vazamentos de memória
-- **Compressão de assets**: CSS/JS otimizados
-
-### Escalabilidade
-- **Arquitetura modular**: Fácil manutenção e extensão
-- **Separação de responsabilidades**: Camadas bem definidas
-- **Configuração centralizada**: Mudanças simples via `config.py`
-
----
-
-## 🧪 Testes e Qualidade
-
-### Validações Implementadas
-- **Entrada de dados**: Sanitização automática
-- **Regras de negócio**: Validações em múltiplas camadas
-- **Estados consistentes**: Verificações de integridade
-
-### Logging
-- **Níveis configuráveis**: Debug, Info, Warning, Error
-- **Formato estruturado**: Timestamp, módulo, nível, mensagem
-- **Rastreabilidade**: Logs de todas as operações críticas
-
----
-
-## 🔧 Configuração e Personalização
+## Configuração
 
 ### Variáveis de Ambiente
 ```bash
-# Senha do supervisor
-export SENHA_SUPERVISOR="suasenhaaqui"
+# Banco de Dados
+DATABASE_URL=postgresql://user:pass@localhost:5432/parking
 
-# Ambiente de execução
-export FLASK_ENV="production"  # ou "development"
+# Ambiente
+FLASK_ENV=production
+SENHA_SUPERVISOR=hash_da_senha
 ```
 
-### Constantes Configuráveis (config.py)
-- `LIMITE_HORAS_ESTACIONAMENTO`: Tempo máximo permitido
-- `VAGAS_COMUNS` / `VAGAS_VISITANTES`: Quantidade de vagas
-- `PORCENTAGEM_WARNING` / `PORCENTAGEM_CRITICAL`: Alertas visuais
+### Parâmetros do Sistema
+```python
+# config.py
+LIMITE_HORAS = 72
+VAGAS_COMUNS = 20
+VAGAS_VISITANTES = 10
+INTERVALO_ATUALIZACAO = 30  # segundos
+```
 
-### Mensagens Personalizáveis
-Todas as mensagens do sistema estão centralizadas na classe `Config.Mensagens`, permitindo fácil personalização e internacionalização.
+## API e Integrações
+
+### Endpoints Principais
+- `POST /veiculos`: Cadastro de veículos
+- `POST /estacionar`: Registro de entrada
+- `POST /liberar`: Registro de saída
+- `GET /vagas`: Status do estacionamento
+
+### Formato de Dados
+```json
+{
+  "veiculo": {
+    "placa": "ABC1234",
+    "tipo": "morador",
+    "entrada": "2025-01-10T14:30:00-03:00"
+  }
+}
+```
+
+## Segurança
+
+### Autenticação
+- Sessões de funcionários com timeout
+- Senha do supervisor hasheada
+- Validação em múltiplas camadas
+
+### Auditoria
+- Logs detalhados de operações
+- Histórico de alterações
+- Rastreamento de responsabilidades
+
+## Interface do Usuário
+
+### Design Responsivo
+- Layout adaptativo
+- Compatível com dispositivos móveis
+- Acessibilidade WCAG 2.1
+
+### Componentes
+- Dashboard de status
+- Formulários de operação
+- Sistema de notificações
+- Timer regressivo
+
+## Desenvolvimento
+
+### Requisitos
+- Python 3.10+
+- PostgreSQL 12+
+- Node.js 16+ (build)
+
+### Instalação
+```bash
+# Ambiente virtual
+python -m venv venv
+source venv/bin/activate
+
+# Dependências
+pip install -r requirements.txt
+
+# Banco de dados
+alembic upgrade head
+```
+
+### Testes
+```bash
+# Unitários
+pytest tests/unit
+
+# Integração
+pytest tests/integration
+```
+
+## Manutenção
+
+### Monitoramento
+- Logs estruturados
+- Métricas de uso
+- Alertas automáticos
+
+### Backup
+- Banco de dados: diário
+- Configurações: versionadas
+- Logs: retenção de 90 dias
+
+### Atualizações
+1. Backup dos dados
+2. Aplicar migrações
+3. Atualizar dependências
+4. Testes de regressão
 
 ---
 
-## 📈 Roadmap de Melhorias
+## Informações do Projeto
+- **Versão**: 2.1.0
+- **Desenvolvedor**: Anderson Jacinto da Silveira
+- **Contato**: [E-mail de Suporte]
+- **Última Atualização**: Janeiro 2025
 
-### Próximas Versões
-- **Banco de dados**: Migração para PostgreSQL/MySQL
-- **Autenticação JWT**: Sistema de tokens mais robusto
-- **Relatórios avançados**: Dashboard com métricas
-- **Notificações**: Email/SMS para tempo excedido
-- **API REST completa**: Documentação OpenAPI
-- **Testes automatizados**: Cobertura completa
-
-### Integrações Futuras
-- **Sistema de pagamento**: Cobrança automática por tempo
-- **Controle de portão**: Integração com hardware
-- **App mobile**: React Native ou Flutter
-- **BI Dashboard**: Analytics de uso das vagas
-
----
-
-**Desenvolvido por**: Anderson Jacinto da Silveira  
-**Projeto**: Sistema de Estacionamento Rotativo - Recantos das Flores I  
-**Versão**: 2.1.0 - Refatoração e Boas Práticas  
-**Data**: Janeiro 2025 
+## Licença
+Todos os direitos reservados. Uso exclusivo do Condomínio Recantos das Flores I.
