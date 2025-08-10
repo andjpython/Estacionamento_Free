@@ -7,7 +7,8 @@ from flask_cors import CORS
 from utils.logger import system_logger
 from utils.metrics import metrics_collector, MetricsMiddleware
 
-from db import SessionLocal
+import os
+from db import SessionLocal, init_db
 from repositories import VagaRepository, VeiculoRepository
 from routes.supervisor_routes import supervisor_bp
 from routes.funcionarios_routes import funcionarios_bp
@@ -19,6 +20,14 @@ CORS(app)
 
 # Middleware de métricas
 app.wsgi_app = MetricsMiddleware(app.wsgi_app, metrics_collector)  # type: ignore
+
+# Inicialização automática do banco (para ambientes como Render)
+if os.environ.get('AUTO_INIT_DB', '1') == '1':
+    try:
+        init_db()
+    except Exception as e:
+        # Não derruba a aplicação por falha de criação inicial
+        system_logger.error("Falha ao inicializar DB automaticamente", extra={"extra_data": {"erro": str(e)}})
 
 # Configurar chave secreta para sessão e CSRF
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'seu_segredo_super_secreto_aqui')
@@ -186,6 +195,18 @@ def listar_vagas_completas():
 @app.route('/metrics', methods=['GET'])
 def metrics():
     return jsonify(metrics_collector.get_metrics_summary())
+
+# Health HTTP
+@app.route('/healthz', methods=['GET'])
+def healthz():
+    try:
+        from db import engine
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            conn.execute(text('SELECT 1'))
+        return jsonify({"status": "ok"})
+    except Exception as e:
+        return jsonify({"status": "fail", "erro": str(e)}), 500
 
 # ---------------------- EXECUÇÃO ----------------------
 if __name__ == '__main__':

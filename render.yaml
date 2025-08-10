@@ -9,6 +9,8 @@ services:
         value: 3.12.0
       - key: FLASK_ENV
         value: production
+      - key: AUTO_INIT_DB
+        value: "1"
       - key: SECRET_KEY
         generateValue: true
       - key: JWT_SECRET_KEY
