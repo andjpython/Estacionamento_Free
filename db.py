@@ -1,5 +1,5 @@
 """
-Configuração do SQLAlchemy e funções auxiliares para o banco de dados
+Configuração do SQLAlchemy 2 e funções auxiliares para o banco de dados
 """
 import os
 from sqlalchemy import create_engine
@@ -13,13 +13,13 @@ database_url = os.getenv('DATABASE_URL', str(active_config.DATABASE_URL))
 if database_url.startswith('postgres://'):
     database_url = database_url.replace('postgres://', 'postgresql://', 1)
 
-# Configurações do engine
+# Configurações do engine otimizadas para SQLAlchemy 2
 engine_config = {
     'pool_pre_ping': True,
     'pool_size': 5,
-    'max_overflow': 10,
+    'max_overflow': 5,
     'pool_timeout': 30,
-    'pool_recycle': 1800
+    'pool_recycle': 300
 }
 
 # Criar engine com base no tipo de banco
