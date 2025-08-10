@@ -16,10 +16,12 @@ if database_url.startswith('postgres://'):
 # Configurações do engine otimizadas para SQLAlchemy 2
 engine_config = {
     'pool_pre_ping': True,
-    'pool_size': 5,
-    'max_overflow': 5,
+    'pool_size': 10,
+    'max_overflow': 20,
     'pool_timeout': 30,
-    'pool_recycle': 300
+    'pool_recycle': 3600,
+    'echo': False,  # Desabilitar logs SQL em produção
+    'future': True  # Habilitar recursos futuros do SQLAlchemy 2
 }
 
 # Criar engine com base no tipo de banco
