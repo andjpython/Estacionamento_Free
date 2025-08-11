@@ -238,3 +238,58 @@ def listar_funcionarios_logados():
     except Exception as e:
         logger.error(f"Erro ao listar funcionários logados: {e}")
         return jsonify({'mensagem': 'Erro interno do servidor!'}), 500
+
+# ====== Rotas utilitárias (sem Shell) ======
+# Permitem cadastrar funcionário via GET e fazer seed básico protegido pela senha do supervisor.
+
+@funcionarios_bp.route('/cadastrar-funcionario-get', methods=['GET'])
+def cadastrar_funcionario_get():
+    try:
+        nome = request.args.get('nome', '').strip()
+        matricula = request.args.get('matricula', '').strip()
+        senha = request.args.get('senha_supervisor', '')
+
+        if not verify_supervisor_password(senha):
+            return jsonify({'mensagem': 'Acesso negado. Senha incorreta!'}), 403
+        if not nome or not matricula:
+            return jsonify({'mensagem': 'Nome e matrícula são obrigatórios!'}), 400
+
+        db = SessionLocal()
+        try:
+            resposta = funcionario_service.cadastrar_funcionario(db, nome, matricula)
+            return jsonify({'mensagem': resposta})
+        finally:
+            db.close()
+    except Exception as e:
+        logger.error(f"Erro no cadastro GET do funcionário: {e}")
+        return jsonify({'mensagem': 'Erro interno do servidor!'}), 500
+
+@funcionarios_bp.route('/bootstrap-dados', methods=['GET'])
+def bootstrap_dados():
+    """Cria funcionários básicos sem precisar de Shell/Console.
+    Protegido pela senha do supervisor via querystring.
+    """
+    try:
+        senha = request.args.get('senha_supervisor', '')
+        if not verify_supervisor_password(senha):
+            return jsonify({'mensagem': 'Acesso negado. Senha incorreta!'}), 403
+
+        db = SessionLocal()
+        criados = []
+        try:
+            repo = FuncionarioRepository(db)
+
+            def ensure(nome: str, matricula: str):
+                if not repo.get_by_matricula(matricula):
+                    funcionario_service.cadastrar_funcionario(db, nome, matricula)
+                    criados.append(matricula)
+
+            ensure('João Teste', '0001')
+            ensure('Maria Teste', '0002')
+
+            return jsonify({'status': 'ok', 'criados': criados})
+        finally:
+            db.close()
+    except Exception as e:
+        logger.error(f"Erro no bootstrap de dados: {e}")
+        return jsonify({'mensagem': 'Erro interno do servidor!'}), 500

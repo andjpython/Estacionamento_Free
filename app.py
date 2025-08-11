@@ -214,17 +214,41 @@ def listar_vagas_completas():
 def metrics():
     return jsonify(metrics_collector.get_metrics_summary())
 
-# Health HTTP
+# Rotas de monitoramento
+from utils.monitoring import SystemMonitor
+from utils.error_logger import ErrorLogger
+
 @app.route('/healthz', methods=['GET'])
 def healthz():
+    """Verificação básica de saúde do sistema"""
     try:
-        from db import engine
-        from sqlalchemy import text
-        with engine.connect() as conn:
-            conn.execute(text('SELECT 1'))
-        return jsonify({"status": "ok"})
+        db_status = SystemMonitor.check_database()
+        if db_status["status"] == "ok":
+            return jsonify({"status": "ok", "message": "Sistema operacional"})
+        else:
+            return jsonify({"status": "error", "message": db_status["message"]}), 500
     except Exception as e:
-        return jsonify({"status": "fail", "erro": str(e)}), 500
+        ErrorLogger.log_error('HEALTH', 'Falha na verificação de saúde', {'error': str(e)})
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/ping', methods=['GET'])
+def ping():
+    """Ping simples para verificar se o serviço está respondendo"""
+    return jsonify({"status": "ok", "message": "pong"})
+
+@app.route('/status', methods=['GET'])
+def status():
+    """Verificação detalhada do status do sistema"""
+    try:
+        status_check = SystemMonitor.full_system_check()
+        return jsonify(status_check)
+    except Exception as e:
+        ErrorLogger.log_error('STATUS', 'Falha na verificação de status', {'error': str(e)})
+        return jsonify({
+            "status": "error",
+            "message": "Falha ao verificar status do sistema",
+            "error": str(e)
+        }), 500
 
 # ---------------------- EXECUÇÃO ----------------------
 if __name__ == '__main__':
