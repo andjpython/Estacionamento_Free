@@ -92,12 +92,14 @@ def clear_logs():
         click.echo(f'❌ Erro ao limpar logs: {str(e)}')
 
 @cli.command()
-def run():
-    """Executa o servidor de desenvolvimento"""
+@click.option('--host', default='127.0.0.1')
+@click.option('--port', default=5000, type=int)
+def run(host, port):
+    """Executa o servidor de desenvolvimento (Python 3.12)"""
     try:
         from app import app
         click.echo('🚀 Iniciando servidor de desenvolvimento...')
-        app.run(debug=True)
+        app.run(debug=True, host=host, port=port)
     except Exception as e:
         click.echo(f'❌ Erro ao iniciar servidor: {str(e)}')
 

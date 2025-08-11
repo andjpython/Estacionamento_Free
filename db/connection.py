@@ -2,7 +2,7 @@
 Gerenciamento de conexões com o banco de dados
 """
 from contextlib import contextmanager
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.exc import DBAPIError
 from utils.error_logger import ErrorLogger
@@ -46,7 +46,8 @@ class DatabaseManager:
     def init_session(self):
         """Inicializa a sessão do SQLAlchemy"""
         if not self.Session:
-            session_factory = sessionmaker(bind=self.engine)
+            # SQLAlchemy 2.x recomenda usar sessionmaker com parâmetros explícitos
+            session_factory = sessionmaker(bind=self.engine, autoflush=False, autocommit=False)
             self.Session = scoped_session(session_factory)
     
     def init_app(self):
@@ -72,7 +73,7 @@ class DatabaseManager:
         """Verifica conexão com o banco"""
         try:
             with self.engine.connect() as conn:
-                conn.execute("SELECT 1")
+                conn.execute(text("SELECT 1"))
             return True
         except Exception as e:
             ErrorLogger.log_error('DATABASE', 'Erro ao verificar conexão', {'error': str(e)})

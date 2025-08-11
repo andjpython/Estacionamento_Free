@@ -1,8 +1,9 @@
 """
 Configuração do SQLAlchemy 2 e funções auxiliares para o banco de dados
+Compatível com Python 3.12 e SQLAlchemy 2.x
 """
 import os
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from db.connection import DatabaseManager
 from config import active_config
 
@@ -24,7 +25,7 @@ engine_config = {
     'pool_timeout': 60,  # Aumentado para dar mais tempo
     'pool_recycle': 1800,  # Reduzido para 30 minutos
     'echo': False,  # Desabilitar logs SQL em produção
-    'future': True,  # Habilitar recursos futuros do SQLAlchemy 2
+    # Em SQLAlchemy 2.x, o modo "future" já é o padrão
     'connect_args': {
         'connect_timeout': 10,  # Timeout de conexão em segundos
         'keepalives': 1,  # Manter conexões vivas

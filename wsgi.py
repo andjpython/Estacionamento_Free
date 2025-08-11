@@ -6,7 +6,7 @@ from app import app
 from db import init_db
 
 # Configurar ambiente
-os.environ['FLASK_ENV'] = 'production'
+os.environ.setdefault('FLASK_ENV', 'production')
 
 # Inicializar banco de dados se necessário
 if os.environ.get('AUTO_INIT_DB', '1') == '1':
