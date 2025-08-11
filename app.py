@@ -221,15 +221,32 @@ from utils.error_logger import ErrorLogger
 @app.route('/healthz', methods=['GET'])
 def healthz():
     """Verificação básica de saúde do sistema"""
-    try:
+    from utils.db_retry import with_db_retry
+    
+    @with_db_retry(max_retries=3, delay=1)
+    def check_db_health():
         db_status = SystemMonitor.check_database()
-        if db_status["status"] == "ok":
-            return jsonify({"status": "ok", "message": "Sistema operacional"})
-        else:
-            return jsonify({"status": "error", "message": db_status["message"]}), 500
+        if db_status["status"] != "ok":
+            raise Exception(db_status["message"])
+        return db_status
+    
+    try:
+        status = check_db_health()
+        return jsonify({
+            "status": "ok",
+            "message": "Sistema operacional",
+            "details": status
+        })
     except Exception as e:
-        ErrorLogger.log_error('HEALTH', 'Falha na verificação de saúde', {'error': str(e)})
-        return jsonify({"status": "error", "message": str(e)}), 500
+        ErrorLogger.log_error('HEALTH', 'Falha na verificação de saúde', {
+            'error': str(e),
+            'type': type(e).__name__
+        })
+        return jsonify({
+            "status": "error",
+            "message": "Falha na verificação de saúde",
+            "error": str(e)
+        }), 500
 
 @app.route('/ping', methods=['GET'])
 def ping():

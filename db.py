@@ -19,12 +19,19 @@ elif database_url.startswith('postgresql://') and '+psycopg' not in database_url
 # Configurações do engine otimizadas para SQLAlchemy 2
 engine_config = {
     'pool_pre_ping': True,
-    'pool_size': 10,
-    'max_overflow': 20,
-    'pool_timeout': 30,
-    'pool_recycle': 3600,
+    'pool_size': 5,  # Reduzido para evitar sobrecarga
+    'max_overflow': 10,  # Reduzido para evitar sobrecarga
+    'pool_timeout': 60,  # Aumentado para dar mais tempo
+    'pool_recycle': 1800,  # Reduzido para 30 minutos
     'echo': False,  # Desabilitar logs SQL em produção
-    'future': True  # Habilitar recursos futuros do SQLAlchemy 2
+    'future': True,  # Habilitar recursos futuros do SQLAlchemy 2
+    'connect_args': {
+        'connect_timeout': 10,  # Timeout de conexão em segundos
+        'keepalives': 1,  # Manter conexões vivas
+        'keepalives_idle': 30,  # Tempo ocioso antes de enviar keepalive
+        'keepalives_interval': 10,  # Intervalo entre keepalives
+        'keepalives_count': 5  # Número de tentativas de keepalive
+    }
 }
 
 # Criar engine com base no tipo de banco

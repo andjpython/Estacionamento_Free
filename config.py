@@ -106,6 +106,20 @@ class ProductionConfig(Config):
     DEBUG = False
     LOG_LEVEL = "WARNING"
     
+    # Configurações de retry
+    DATABASE_MAX_RETRIES = 3
+    DATABASE_RETRY_DELAY = 1
+    
+    # Configurações de pool
+    DATABASE_POOL_SIZE = 5
+    DATABASE_MAX_OVERFLOW = 10
+    DATABASE_POOL_TIMEOUT = 60
+    DATABASE_POOL_RECYCLE = 1800
+    
+    # Configurações de timeout
+    DATABASE_CONNECT_TIMEOUT = 10
+    DATABASE_COMMAND_TIMEOUT = 30
+    
 # === Configuração ativa ===
 # Por padrão usa desenvolvimento, mas pode ser alterado via variável de ambiente
 config_name = os.environ.get('FLASK_ENV', 'development')
