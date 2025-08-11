@@ -34,14 +34,8 @@ class DatabaseManager:
                 """Log de conexão estabelecida"""
                 ErrorLogger.log_info('DATABASE', 'Conexão estabelecida com o banco')
             
-            @event.listens_for(self.engine, 'checkout')
-            def receive_checkout(dbapi_connection, connection_record, connection_proxy):
-                """Verificação de conexão no checkout"""
-                try:
-                    dbapi_connection.ping(reconnect=True)
-                except DBAPIError as e:
-                    ErrorLogger.log_error('DATABASE', 'Erro ao verificar conexão', {'error': str(e)})
-                    raise
+            # pool_pre_ping já garante validação da conexão. Removemos pings
+            # específicos de driver (psycopg3 não expõe "ping").
     
     def init_session(self):
         """Inicializa a sessão do SQLAlchemy"""
