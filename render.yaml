@@ -3,29 +3,11 @@ services:
     name: estacionamento-rotativo
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn -c gunicorn_config.py app:app
+    startCommand: gunicorn wsgi:application -c gunicorn_config.py
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.12.0
       - key: FLASK_ENV
         value: production
       - key: AUTO_INIT_DB
-        value: "1"
-      - key: SECRET_KEY
-        generateValue: true
-      - key: JWT_SECRET_KEY
-        generateValue: true
-      - key: DATABASE_URL
-        fromDatabase:
-          name: estacionamento_db
-          property: connectionString
-      - key: SECRET_KEY
-        generateValue: true
-      - key: JWT_SECRET_KEY
-        generateValue: true
-
-databases:
-  - name: estacionamento_db
-    databaseName: estacionamento_rotativo
-    user: estacionamento_user
-    plan: free
+        value: 1
+      - key: PYTHON_VERSION
+        value: 3.9.12

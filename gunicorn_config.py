@@ -1,35 +1,51 @@
-# Configuração do Gunicorn para o Render
-# Render fornece a porta via variável de ambiente PORT
-import os
-port = os.environ.get("PORT", "10000")
-bind = f"0.0.0.0:{port}"
-
-# Ajusta workers dinamicamente quando disponível (Render/Heroku)
+"""
+Configuração do Gunicorn para produção
+"""
 import multiprocessing
-web_concurrency = os.getenv("WEB_CONCURRENCY")
-workers = int(web_concurrency) if web_concurrency else max(2, multiprocessing.cpu_count())
-worker_class = "sync"
-threads = 2
-timeout = 120
-keepalive = 2
-max_requests = 1000
-max_requests_jitter = 100
-preload_app = True
+import os
+
+# Configurações básicas
+bind = "0.0.0.0:" + os.getenv("PORT", "8000")
+workers = multiprocessing.cpu_count() * 2 + 1
+worker_class = "sync"  # Usando workers síncronos para compatibilidade com SQLAlchemy
+threads = 1  # Single thread por worker para evitar problemas de concorrência
+
+# Timeouts
+timeout = 120  # 2 minutos
+keepalive = 5
+graceful_timeout = 30
 
 # Logging
 accesslog = "-"
 errorlog = "-"
-loglevel = "info"
-capture_output = True
-enable_stdio_inheritance = True
+loglevel = "warning"
 
-# Server Mechanics
+# Configurações de processo
 daemon = False
 pidfile = None
 umask = 0
 user = None
 group = None
+tmp_upload_dir = None
 
-# SSL
-keyfile = None
-certfile = None
+# Hooks de processo
+def on_starting(server):
+    """Executado quando o servidor está iniciando"""
+    pass
+
+def on_reload(server):
+    """Executado em reload do código"""
+    pass
+
+def on_exit(server):
+    """Executado quando o servidor está encerrando"""
+    pass
+
+# Configurações de SSL (se necessário)
+# keyfile = "/path/to/keyfile"
+# certfile = "/path/to/certfile"
+
+# Configurações de segurança
+limit_request_line = 4096
+limit_request_fields = 100
+limit_request_field_size = 8190

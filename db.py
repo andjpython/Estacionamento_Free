@@ -35,13 +35,24 @@ engine_config = {
 }
 
 # Criar engine com base no tipo de banco
-if database_url.startswith('sqlite:'):
-    engine = create_engine(
-        database_url,
-        connect_args={'check_same_thread': False}
-    )
-else:
-    engine = create_engine(database_url, **engine_config)
+def create_db_engine():
+    """Cria e configura o engine do SQLAlchemy"""
+    if database_url.startswith('sqlite:'):
+        return create_engine(
+            database_url,
+            connect_args={'check_same_thread': False}
+        )
+    else:
+        return create_engine(
+            database_url,
+            **engine_config,
+            # Configurações adicionais para evitar problemas de herança
+            _initialize=False,
+            _wrap_db_errors=True
+        )
+
+# Criar engine
+engine = create_db_engine()
 
 # Configurar sessão
 session_factory = sessionmaker(
