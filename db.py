@@ -2,8 +2,8 @@
 Configuração do SQLAlchemy 2 e funções auxiliares para o banco de dados
 """
 import os
-from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker, scoped_session
+from sqlalchemy.ext.declarative import declarative_base
+from db.connection import DatabaseManager
 from config import active_config
 
 # Obter URL do banco de dados
@@ -34,46 +34,26 @@ engine_config = {
     }
 }
 
-# Criar engine com base no tipo de banco
-def create_db_engine():
-    """Cria e configura o engine do SQLAlchemy"""
-    if database_url.startswith('sqlite:'):
-        return create_engine(
-            database_url,
-            connect_args={'check_same_thread': False}
-        )
-    else:
-        return create_engine(
-            database_url,
-            **engine_config,
-            # Configurações adicionais para evitar problemas de herança
-            _initialize=False,
-            _wrap_db_errors=True
-        )
-
-# Criar engine
-engine = create_db_engine()
-
-# Configurar sessão
-session_factory = sessionmaker(
-    bind=engine,
-    autocommit=False,
-    autoflush=False
-)
-
-# Criar escopo de sessão thread-safe
-SessionLocal = scoped_session(session_factory)
-
 # Classe base para os modelos
 Base = declarative_base()
 
+# Criar gerenciador de banco de dados
+db_manager = DatabaseManager(
+    database_url,
+    connect_args={'connect_timeout': 10} if not database_url.startswith('sqlite:') else {}
+)
+
+# Inicializar banco de dados
+db_manager.init_app()
+
+# Aliases para compatibilidade
+engine = db_manager.engine
+SessionLocal = db_manager.Session
+
 def get_db():
     """Contexto de banco de dados para uso com 'with'"""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    with db_manager.session_scope() as session:
+        yield session
 
 def init_db():
     """Inicializa o banco de dados"""
