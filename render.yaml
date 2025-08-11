@@ -3,7 +3,9 @@ services:
     name: estacionamento-rotativo
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn wsgi:application -c gunicorn_config.py
+    startCommand: |
+      python scripts/restore_db.py
+      gunicorn wsgi:application -c gunicorn_config.py
     envVars:
       - key: FLASK_ENV
         value: production
