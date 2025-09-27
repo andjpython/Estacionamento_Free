@@ -2,6 +2,7 @@
 Flask==3.0.0
 Flask-CORS==4.0.0
 pytz==2024.1
+gunicorn==21.2.0
 
 # === Dependências condicionais ===
 backports.zoneinfo; python_version<"3.9"
