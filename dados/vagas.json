@@ -2,16 +2,16 @@
     {
         "numero": 1,
         "tipo": "comum",
-        "ocupada": true,
-        "veiculo": "AVX9F34",
-        "entrada": "2025-07-26T22:53:38.380545-03:00"
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
     },
     {
         "numero": 2,
         "tipo": "comum",
-        "ocupada": true,
-        "veiculo": "BCE4F33",
-        "entrada": "2025-07-26T21:24:57.321127-03:00"
+        "ocupada": false,
+        "veiculo": null,
+        "entrada": null
     },
     {
         "numero": 3,

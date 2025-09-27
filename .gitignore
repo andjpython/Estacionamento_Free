@@ -151,4 +151,10 @@ Thumbs.db
 
 # Project specific
 dados/*.json.bak
-*.log 
+*.log
+
+# Temporary Office files
+~$*.docx
+~$*.xlsx
+~$*.pptx
+*.tmp 

@@ -472,5 +472,31 @@
         "matricula": "0001",
         "nome": "João Carlos Ferreira Nascimento",
         "data": "2025-07-27T10:18:33.897295-03:00"
+    },
+    {
+        "acao": "login",
+        "matricula": "0001",
+        "nome": "João Carlos Ferreira Nascimento",
+        "data": "2025-09-27T14:37:17.574387-03:00"
+    },
+    {
+        "acao": "saida_veiculo",
+        "placa": "AVX9F34",
+        "nome": "Roberto Carlos Oliveira",
+        "vaga": 1,
+        "tempo_min": 90225,
+        "funcionario": "João Carlos Ferreira Nascimento",
+        "matricula": "0001",
+        "data_saida": "2025-09-27T14:38:32.805860-03:00"
+    },
+    {
+        "acao": "saida_veiculo",
+        "placa": "BCE4F33",
+        "nome": "Romano Pereira Carvalho",
+        "vaga": 2,
+        "tempo_min": 90314,
+        "funcionario": "João Carlos Ferreira Nascimento",
+        "matricula": "0001",
+        "data_saida": "2025-09-27T14:39:20.942702-03:00"
     }
 ]
